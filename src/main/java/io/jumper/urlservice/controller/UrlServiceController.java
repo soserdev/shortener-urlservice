@@ -27,7 +27,7 @@ public class UrlServiceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         log.debug("-> originalPath: " + url.get().getLongUrl());
-        return new ResponseEntity(url.get(), HttpStatus.OK);
+        return new ResponseEntity<>(url.get(), HttpStatus.OK);
     }
 
     @PostMapping(SERVICE_API_V1)
