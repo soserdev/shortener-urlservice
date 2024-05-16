@@ -88,7 +88,7 @@
 								<dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
 								<tags>
 									<tag>latest</tag>
-									<tag>0.1</tag>
+									<tag>${project.version}</tag>
 								</tags>
 							</build>
 						</image>
