@@ -12,9 +12,9 @@ COPY ${JAR_FILE} target/application.jar
 RUN java -Djarmode=layertools -jar target/application.jar extract --destination target/extracted
 
 FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S demo && adduser -S demo -G demo
+RUN addgroup -S ${project.name} && adduser -S ${project.name} -G ${project.name}
 VOLUME /tmp
-USER demo
+USER ${project.name}
 ARG EXTRACTED=/workspace/app/target/extracted
 WORKDIR application
 COPY --from=build ${EXTRACTED}/dependencies/ ./
