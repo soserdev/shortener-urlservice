@@ -15,7 +15,10 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>
+		<docker.image.prefix>jumper</docker.image.prefix>
+		<docker.image.name>jumper-urlservice</docker.image.name>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -76,12 +79,13 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<version>0.44.0</version>
 				<configuration>
+					<verbose>false</verbose>
 					<images>
 						<image>
-							<name>%g/%a</name>
+							<name>${docker.image.prefix}/${docker.image.name}</name>
 							<build>
 								<contextDir>${project.basedir}</contextDir>
-								<dockerFile>src/main/docker/Dockerfile</dockerFile>
+								<dockerFile>${project.basedir}/src/main/docker/Dockerfile</dockerFile>
 								<tags>
 									<tag>latest</tag>
 									<tag>0.1</tag>
@@ -93,5 +97,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
