@@ -1,5 +1,18 @@
 # Jumper Urlservice
 
+Build docker image using docker
+
+```bash
+docker build  -t jumper/jumper-urlservice:latest -t jumper/jumper-urlservice:0.1 -f Dockerfile .
+```
+
+Build docker image using `docker-maven-plugin`
+
+```bash
+./mvnw docker:build
+```
+
+
 Start mongo using docker compose
 
 ```bash

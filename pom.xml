@@ -59,12 +59,36 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<layers>
+						<enabled>true</enabled>
+						<includeLayerTools>true</includeLayerTools>
+					</layers>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.44.0</version>
+				<configuration>
+					<images>
+						<image>
+							<name>%g/%a</name>
+							<build>
+								<contextDir>${project.basedir}</contextDir>
+								<dockerFile>src/main/docker/Dockerfile</dockerFile>
+								<tags>
+									<tag>latest</tag>
+									<tag>0.1</tag>
+								</tags>
+							</build>
+						</image>
+					</images>
 				</configuration>
 			</plugin>
 		</plugins>
