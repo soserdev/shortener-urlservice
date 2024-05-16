@@ -1,5 +1,11 @@
 # Jumper Urlservice
 
+Start mongo using docker compose
+
+```bash
+docker compose up -d
+```
+
 Create a short url.
 
 ```bash
