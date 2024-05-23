@@ -15,7 +15,7 @@
 	<description>Demo project for Spring Boot</description>
 	<properties>
 		<java.version>21</java.version>
-		<docker.image.prefix>jumper</docker.image.prefix>
+		<docker.image.prefix>somnidev</docker.image.prefix>
 		<docker.image.name>jumper-urlservice</docker.image.name>
 	</properties>
 
@@ -72,6 +72,15 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+					<image>
+						<name>${docker.image.prefix}/${docker.image.name}:alpaquita-pack</name>
+						<builder>bellsoft/buildpacks.builder:musl</builder>
+						<env>
+							<BP_JVM_VERSION>17</BP_JVM_VERSION>
+							<BP_JVM_JLINK_ENABLED>true</BP_JVM_JLINK_ENABLED>
+							<BP_JVM_JLINK_ARGS>--no-man-pages --no-header-files --strip-debug --compress=2 --add-modules java.base,java.logging,java.naming,java.desktop,jdk.unsupported</BP_JVM_JLINK_ARGS>
+						</env>
+					</image>
 				</configuration>
 			</plugin>
 			<plugin>
