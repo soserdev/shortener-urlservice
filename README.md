@@ -1,10 +1,16 @@
 # Jumper Urlservice
 
-Build docker image using docker
+## Docker 
+
+### Build Docker Image using `docker build`
+
+Build docker image on MacOS using docker
 
 ```bash
 docker build  -t jumper/jumper-urlservice:latest -t jumper/jumper-urlservice:0.1 -f Dockerfile .
 ```
+
+### Build Docker Image using maven
 
 Build docker image using `docker-maven-plugin`
 
@@ -12,16 +18,288 @@ Build docker image using `docker-maven-plugin`
 ./mvnw docker:build
 ```
 
+### Push Docker Image to docker.io
 
-Start mongo using docker compose
+In order to push the image add a `~/.m2/settings.xml` file
+
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+      <localRepository/>
+      <interactiveMode/>
+      <usePluginRegistry/>
+      <offline/>
+      <pluginGroups>
+      <pluginGroup>io.fabric8</pluginGroup>
+      <pluginGroup>org.springframework.boot</pluginGroup>
+      </pluginGroups>
+      <servers>
+        <server>
+         <id>docker-hub</id>
+         <registry>docker.io</registry>
+         <username>USERNAME</username>
+         <password>PASSWORD</password>
+         <configuration>
+            <email>EMAIL</email>
+          </configuration>
+        </server>
+      </servers>
+      <mirrors/>
+      <proxies/>
+      <profiles/>
+      <activeProfiles/>
+</settings>
+```
+
+Now you can push it
+
+```bash
+./mvnw clean docker:build docker:push
+```
+
+### Start a local mongo database 
+
+Start mongo for local development using docker compose
 
 ```bash
 docker compose up -d
 ```
+
+### Create a Docker Image using _Paketo Buildpack_
+
+Actually, the best way to create a _Docker Image_ is to use _Paketo Buildpacks_, since you don't need to create a _Dockerfile_.
+Paketo will create one for you.
+
+In order to create a Docker Image, you can use maven.
+
+We need some additional configuration in our `pom.xml`.
+
+```xml
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <configuration>
+        <layers>
+            <enabled>true</enabled>
+            <includeLayerTools>true</includeLayerTools>
+        </layers>
+        <image>
+            <name>jumper/jumper-urlservice:alpaquita-pack</name>
+            <builder>bellsoft/buildpacks.builder:musl</builder>
+            <env>
+                <BP_JVM_VERSION>17</BP_JVM_VERSION>
+                <BP_JVM_JLINK_ENABLED>true</BP_JVM_JLINK_ENABLED>
+                <BP_JVM_JLINK_ARGS>--no-man-pages --no-header-files --strip-debug --compress=2 --add-modules java.base,java.logging,java.naming,java.desktop,jdk.unsupported</BP_JVM_JLINK_ARGS>
+            </env>
+        </image>
+    </configuration>
+</plugin>
+```
+
+>_**Note:**_ We have to use Java Version 17 and this will not create an Image for macOs!
+
+```bash
+$ docker image ls | grep url
+somnidev/jumper-urlservice                0.0.1-SNAPSHOT                                                                7ae7913b4898   About a minute ago   217MB
+somnidev/jumper-urlservice                latest                                                                        7ae7913b4898   About a minute ago   217MB
+jumper/jumper-urlservice                  alpaquita-pack                                                                b2f191cbc2af   44 years ago         112MB
+```
+In order to check the architecture the image has, you can use the following commands.
+
+```bash
+$ docker image inspect b2f191cbc2af | grep Architecture
+        "Architecture": "amd64",
+$ docker image inspect 7ae7913b4898 | grep Architecture
+        "Architecture": "arm64",
+```
+
+## UserServie API
 
 Create a short url.
 
 ```bash
 curl -v -H'Content-Type: application/json' -d'{"shortUrl": "7765","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:8082/api/v1/urlservice
 ```
+
+## Kubernetes
+
+### Creating the Kubernetes Configuration for our API
+
+#### Create a Kubernetes Deployment using `kubectl`
+
+Create a _Deployment_ using _kubectl_.
+
+```bash
+kubectl create deployment kbe-rest --image springframeworkguru/kbe-rest-brewery --dry-run=client -o=yaml > deployment.yml
+```
+
+This creates the following `deployment.yml` file.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: jumper-urlservice
+  name: jumper-urlservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jumper-urlservice
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: jumper-urlservice
+    spec:
+      containers:
+        - image: somnidev/jumper-urlservice
+          name: jumper-urlservice
+          resources: {}
+status: {}
+```
+
+#### Create a Kubernetes Service using `kubectl`
+
+Now we need a kubernetes service for our deployment.
+
+```bash
+kubectl create service clusterip kbe-rest --tcp=8080:8080 --dry-run=client -o=yaml > service.yml
+```
+
+The `service.yml` file.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: jumper-urlservice
+  name: jumper-urlservice
+spec:
+  ports:
+  - name: 8080-8080
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: jumper-urlservice
+  type: ClusterIP
+status:
+  loadBalancer: {}
+```
+
+#### The final Kubernetes Deployment and Service
+
+The final `api.yml` file contains the following configuration.
+
+```yaml
+```
+
+### Deploy our service to Kubnernetes
+
+#### Start MongoDB
+
+Now we change to the `k8s` directory.
+
+```bash
+cd k8s
+```
+
+In order to start MongoDB we first have to create our _persistent volume_ and the corresponding _persistent volume claim_.
+
+```bash
+kubectl apply -f storage.yaml
+```
+
+It might take some time to create your `pvc`.
+
+```bash
+% kubectl get pvc
+NAME        STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS     VOLUMEATTRIBUTESCLASS   AGE
+mongo-pvc   Pending                                      mylocalstorage   <unset>                 12s
+```
+
+But after some time, there should be one _pvc_ configured and one corresponding _pv_.
+
+```bash
+% kubectl get pvc
+NAME        STATUS   VOLUME          CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+mongo-pvc   Bound    local-storage   10Gi       RWO            mylocalstorage   2m32s
+
+% kubectl get pv 
+NAME            CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM               STORAGECLASS     REASON   AGE
+local-storage   10Gi       RWO            Retain           Bound    default/mongo-pvc   mylocalstorage            3m12s
+```
+
+Now we can start MongoDB itself.
+
+```bash
+kubectl apply -f mongo.yaml
+```
+
+And check if it is running.
+
+```bash
+% kubectl get all
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/mongodb-86fb498bb-zcpsg   1/1     Running   0          12m
+
+NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+service/jumper-mongodb   ClusterIP   10.108.219.137   <none>        27017/TCP   12m
+service/kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP     5d20h
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/mongodb   1/1     1            1           12m
+
+NAME                                DESIRED   CURRENT   READY   AGE
+replicaset.apps/mongodb-86fb498bb   1         1         1       12m
+```
+
+Now we can access the container and the database.
+
+```bash
+% kubectl exec --stdin --tty mongodb-86fb498bb-zcpsg -- /bin/bash
+```
+
+Now we can use `mongosh` - `mongo` is not supported since version 6.
+
+```bash
+% mongosh
+Current Mongosh Log ID:	664dfcc84786086433554f36
+Connecting to:		mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.4
+Using MongoDB:		7.0.5
+Using Mongosh:		2.1.4
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+
+To help improve our products, anonymous usage data is collected and sent to MongoDB periodically (https://www.mongodb.com/legal/privacy-policy).
+You can opt-out by running the disableTelemetry() command.
+
+------
+   The server generated these startup warnings when booting
+   2024-05-22T13:57:09.498+00:00: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+   2024-05-22T13:57:09.498+00:00: /sys/kernel/mm/transparent_hugepage/enabled is 'always'. We suggest setting it to 'never'
+   2024-05-22T13:57:09.498+00:00: vm.max_map_count is too low
+------
+
+```
+
+Let's show all available databases.
+
+```bash
+test> show dbs
+admin   40.00 KiB
+config  12.00 KiB
+local   40.00 KiB
+```
+
+In order to get logged out we have to `exit` twice!
 

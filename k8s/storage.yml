@@ -1,0 +1,28 @@
+# A PersistentVolumeClaim (PVC) is a request for storage by a user.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  storageClassName: mylocalstorage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+# A PersistentVolume (PV) is a piece of storage in the cluster that has been provisioned by an administrator
+# or dynamically provisioned using Storage Classes.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage
+spec:
+  storageClassName: mylocalstorage
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/mongo-volume
+    type: DirectoryOrCreate
