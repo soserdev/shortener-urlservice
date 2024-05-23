@@ -7,9 +7,7 @@ COPY src src
 COPY pom.xml .
 
 RUN ./mvnw package -DskipTests
-ARG JAR_FILE=target/*.jar
-COPY ${JAR_FILE} target/application.jar
-RUN java -Djarmode=layertools -jar target/application.jar extract --destination target/extracted
+RUN java -Djarmode=layertools -jar target/*.jar extract --destination target/extracted
 
 FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S ${project.name} && adduser -S ${project.name} -G ${project.name}
