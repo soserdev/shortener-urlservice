@@ -1,0 +1,20 @@
+FROM alpine:latest AS build
+ENV JAVA_HOME /opt/jdk/jdk-21.0.3+9
+ENV PATH $JAVA_HOME/Home/bin:$PATH
+
+# ADD https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.1%2B12/OpenJDK21U-jdk_x64_alpine-linux_hotspot_21.0.1_12.tar.gz /opt/jdk/
+ADD https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.3%2B9/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.3_9.tar.gz /opt/jdk/
+
+RUN tar -xzvf /opt/jdk/OpenJDK21U-jdk_aarch64_mac_hotspot_21.0.3_9.tar.gz -C /opt/jdk/
+RUN ["jlink", "--compress=2", \
+     "--module-path", "/opt/jdk/jdk-21.0.3+9/jmods/", \
+     "--add-modules", "java.base,java.logging,java.naming,java.desktop,jdk.unsupported", \
+     "--no-header-files", "--no-man-pages", \
+     "--output", "/springboot-runtime"]
+
+FROM alpine:latest
+COPY --from=build  /springboot-runtime /opt/jdk
+ENV PATH=$PATH:/opt/jdk/bin
+# EXPOSE 8080
+COPY ../target/*.jar /opt/app/application.jar
+CMD ["java", "-showversion", "-jar", "/opt/app/application.jar"]
