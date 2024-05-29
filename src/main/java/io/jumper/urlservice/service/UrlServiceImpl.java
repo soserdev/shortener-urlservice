@@ -29,9 +29,9 @@ public class UrlServiceImpl implements UrlService {
         if (urlRepository.findByShortUrl(shortUrl) != null) {
             throw new UrlServiceException("Short url is not unique!");
         }
-        // short url is unique... let's store it...
-        var url = new UrlData(shortUrl, longUrl, userid);
-        return Optional.ofNullable(urlRepository.save(url));
+        var urlToSave = new UrlData(shortUrl, longUrl, userid);
+        var savedUrl = urlRepository.save(urlToSave);
+        return Optional.ofNullable(savedUrl);
     }
 
 }
