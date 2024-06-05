@@ -67,8 +67,8 @@ class UrlServiceControllerTest {
     void create() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
-                .shortUrl("0abc")
-                .longUrl("http://abc.io/")
+                .shortUrl("short-url")
+                .longUrl("http://longurl.com/")
                 .build();
         var jsonData = objectMapper.writeValueAsString(UrlData.builder().shortUrl(urlData.getShortUrl()).longUrl(urlData.getLongUrl()).build());
 
