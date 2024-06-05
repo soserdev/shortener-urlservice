@@ -1,6 +1,5 @@
 package io.jumper.urlservice.service;
 
-import io.jumper.urlservice.exception.UrlServiceException;
 import io.jumper.urlservice.model.UrlData;
 import io.jumper.urlservice.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,18 +19,13 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     public Optional<UrlData> getLongUrl(String shortUrl) {
-        var url = urlRepository.findByShortUrl(shortUrl);
-        return Optional.ofNullable(url);
+        return urlRepository.findByShortUrl(shortUrl);
     }
 
     @Override
     public Optional<UrlData> saveUrl(String shortUrl, String longUrl, String userid) {
-        if (urlRepository.findByShortUrl(shortUrl) != null) {
-            throw new UrlServiceException("Short url is not unique!");
-        }
         var urlToSave = new UrlData(shortUrl, longUrl, userid);
-        var savedUrl = urlRepository.save(urlToSave);
-        return Optional.ofNullable(savedUrl);
+        return Optional.of(urlRepository.save(urlToSave));
     }
 
 }

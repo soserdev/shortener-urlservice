@@ -1,5 +1,6 @@
 package io.jumper.urlservice.controller;
 
+import io.jumper.urlservice.exception.ResourceNotFoundException;
 import io.jumper.urlservice.exception.UrlServiceException;
 import io.jumper.urlservice.model.UrlData;
 import io.jumper.urlservice.service.UrlService;
@@ -20,23 +21,16 @@ public class UrlServiceController {
 
     @GetMapping(SERVICE_API_V1 + "/{shortUrl}")
     public ResponseEntity<UrlData> getLongUrl(@PathVariable String shortUrl) {
-        log.debug("'GET " + SERVICE_API_V1 + "/" + shortUrl);
-        var url = urlService.getLongUrl(shortUrl);
-        if (url.isEmpty()) {
-            log.debug("-> NOT Found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        log.debug("-> originalPath: " + url.get().getLongUrl());
-        return new ResponseEntity<>(url.get(), HttpStatus.OK);
+        var url = urlService.getLongUrl(shortUrl)
+                .orElseThrow(() -> new ResourceNotFoundException("Resource '" + shortUrl + "' not found!"));
+        return new ResponseEntity<>(url, HttpStatus.OK);
     }
 
     @PostMapping(SERVICE_API_V1)
     public ResponseEntity<UrlData> create(@RequestBody UrlData url) {
-        var savedUrl = urlService.saveUrl(url.getShortUrl(), url.getLongUrl(),url.getUserid());
-        if (savedUrl.isEmpty()) {
-            log.debug("Url not created:" + url.getShortUrl());
-            throw new UrlServiceException("Url not created");
-        }
-        return new ResponseEntity<>(savedUrl.get(), HttpStatus.CREATED);
+        var savedUrl = urlService.saveUrl(url.getShortUrl(), url.getLongUrl(),url.getUserid())
+                .orElseThrow(() -> new UrlServiceException("Url not created!"));
+
+        return new ResponseEntity<>(savedUrl, HttpStatus.CREATED);
     }
 }

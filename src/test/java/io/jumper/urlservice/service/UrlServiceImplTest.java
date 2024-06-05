@@ -1,6 +1,5 @@
 package io.jumper.urlservice.service;
 
-import io.jumper.urlservice.exception.UrlServiceException;
 import io.jumper.urlservice.model.UrlData;
 import io.jumper.urlservice.repository.UrlRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,10 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -35,7 +36,7 @@ class UrlServiceImplTest {
 
     @Test
     void getLongUrl_ShouldReturnUrlData_WhenShortUrlExists() {
-        when(urlRepository.findByShortUrl("shortUrl")).thenReturn(urlData);
+        when(urlRepository.findByShortUrl("shortUrl")).thenReturn(Optional.of(urlData));
 
         Optional<UrlData> result = urlService.getLongUrl("shortUrl");
 
@@ -47,7 +48,7 @@ class UrlServiceImplTest {
     }
     @Test
     void getLongUrl_ShouldReturnEmptyOptional_WhenShortUrlDoesNotExist() {
-        when(urlRepository.findByShortUrl(any())).thenReturn(null);
+        when(urlRepository.findByShortUrl(any())).thenReturn(Optional.empty());
 
         Optional<UrlData> result = urlService.getLongUrl("shortUrl");
 
@@ -57,29 +58,16 @@ class UrlServiceImplTest {
     }
 
     @Test
+    @Transactional
     void saveUrl_ShouldSaveUrlData_WhenShortUrlIsUnique() {
-        when(urlRepository.findByShortUrl("shortUrl")).thenReturn(null);
         when(urlRepository.save(any(UrlData.class))).thenReturn(urlData);
 
         Optional<UrlData> result = urlService.saveUrl("shortUrl", "http://longurl.com", "user123");
 
         assertTrue(result.isPresent());
         assertEquals("shortUrl", result.get().getShortUrl());
-        verify(urlRepository, times(1)).findByShortUrl(eq("shortUrl"));
+        assertEquals("http://longurl.com", result.get().getLongUrl());
         verify(urlRepository, times(1)).save(any(UrlData.class));
-        verifyNoMoreInteractions(urlRepository);
-    }
-
-    @Test
-    void saveUrl_ShouldThrowException_WhenShortUrlIsNotUnique() {
-        when(urlRepository.findByShortUrl("shortUrl")).thenReturn(urlData);
-
-        UrlServiceException exception = assertThrows(UrlServiceException.class, () -> {
-            urlService.saveUrl("shortUrl", "http://longurl.com", "user123");
-        });
-
-        assertEquals("Short url is not unique!", exception.getMessage());
-        verify(urlRepository, times(1)).findByShortUrl(eq("shortUrl"));
         verifyNoMoreInteractions(urlRepository);
     }
 

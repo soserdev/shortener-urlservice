@@ -3,10 +3,10 @@ package io.jumper.urlservice.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-public class UrlServiceException extends RuntimeException {
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException {
 
-    public UrlServiceException(String message) {
+    public ResourceNotFoundException(String message) {
         super(message);
     }
 
