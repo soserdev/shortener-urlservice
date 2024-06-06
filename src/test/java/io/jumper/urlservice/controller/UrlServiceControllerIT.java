@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -22,33 +21,32 @@ class UrlServiceControllerIT {
     UrlRepository urlRepository;
 
     @Test
-    @Transactional
-    void create() {
-        var longUrl = "http://abc.io/";
-        var shortUrl = "=abc";
-        var userid = "uid";
-        var urldata = UrlData.builder()
-                .longUrl(longUrl)
-                .shortUrl(shortUrl)
-                .userid(userid)
+    void createFindAndDelete() {
+        var urlData = UrlData.builder()
+                .longUrl("http://long-url/")
+                .shortUrl("short-url")
+                .userid("userid")
                 .build();
-        var responseEntity = urlServiceController.create(urldata);
+        var responseEntity = urlServiceController.create(urlData);
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(responseEntity.getBody()).isNotNull();
         assertThat(responseEntity.getBody().getId()).isNotNull();
-        assertThat(responseEntity.getBody().getLongUrl()).isEqualTo(longUrl);
-        assertThat(responseEntity.getBody().getUserid()).isEqualTo(userid);
+        assertThat(responseEntity.getBody().getShortUrl()).isEqualTo(urlData.getShortUrl());
+        assertThat(responseEntity.getBody().getLongUrl()).isEqualTo(urlData.getLongUrl());
+        assertThat(responseEntity.getBody().getUserid()).isEqualTo(urlData.getUserid());
         assertThat(responseEntity.getBody().getCreated()).isNotNull();
         assertThat(responseEntity.getBody().getUpdated()).isNotNull();
 
-        Optional<UrlData> urlData = urlRepository.findById(responseEntity.getBody().getId());
-        assertThat(urlData).isNotNull();
-        assertThat(urlData.isPresent()).isTrue();
-        assertThat(urlData.get().getLongUrl()).isEqualTo(longUrl);
-        assertThat(urlData.get().getShortUrl()).isEqualTo(shortUrl);
-        assertThat(urlData.get().getUserid()).isEqualTo(userid);
-        assertThat(urlData.get().getCreated()).isNotNull();
-        assertThat(urlData.get().getUpdated()).isNotNull();
+        Optional<UrlData> found = urlRepository.findById(responseEntity.getBody().getId());
+        assertThat(found).isNotNull();
+        assertThat(found.isPresent()).isTrue();
+        assertThat(found.get().getShortUrl()).isEqualTo((urlData.getShortUrl()));
+        assertThat(found.get().getLongUrl()).isEqualTo(urlData.getLongUrl());
+        assertThat(found.get().getUserid()).isEqualTo(urlData.getUserid());
+        assertThat(found.get().getCreated()).isNotNull();
+
+        urlRepository.delete(found.get());
+
     }
 }
