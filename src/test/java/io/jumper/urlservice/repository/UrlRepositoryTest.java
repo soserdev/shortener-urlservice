@@ -1,9 +1,6 @@
 package io.jumper.urlservice.repository;
 
 import io.jumper.urlservice.model.UrlData;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -12,12 +9,10 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataMongoTest
 @Testcontainers
+@DataMongoTest
 class UrlRepositoryTest {
 
     @Container
@@ -27,23 +22,6 @@ class UrlRepositoryTest {
     @Autowired
     UrlRepository repository;
 
-    @BeforeAll
-    public static void setup() {
-        mongo.start();
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        mongo.stop();
-    }
-
-    @BeforeEach
-    void setUp() {
-        List<UrlData> urls = List.of(new UrlData("short-url", "long-url", "user-id"));
-        repository.saveAll(urls);
-    }
-
-
     @Test
     void connectionIsEstablished() {
         assertThat(mongo.isCreated()).isTrue();
@@ -51,13 +29,23 @@ class UrlRepositoryTest {
     }
 
     @Test
-    void shouldFindByShortUrl() {
+    void givenUrlExists_whenFindByShortUrl_thenGetUrl() {
+        var saved = repository.save(new UrlData("short-url", "long-url", "user-id"));
+
         var url = repository.findByShortUrl("short-url");
         assertThat(url).isNotNull();
         assertThat(url).isPresent();
         assertThat(url.get().getShortUrl()).isEqualTo("short-url");
         assertThat(url.get().getLongUrl()).isEqualTo("long-url");
         assertThat(url.get().getUserid()).isEqualTo("user-id");
+
+        repository.delete(saved);
     }
 
+    @Test
+    void givenNonExistingUrl_whenFindByShortUrl_thenReturnNotPresent() {
+        var url = repository.findByShortUrl("short-url-not-existing");
+        assertThat(url).isNotNull();
+        assertThat(url).isEmpty();
+    }
 }
