@@ -303,3 +303,82 @@ local   40.00 KiB
 
 In order to get logged out we have to `exit` twice!
 
+## Use docker for development
+
+Let's login into our docker container.
+
+```bash
+> docker exec -it 49e2c560b30b sh
+```
+
+Let's login into our mongo database using `mongosh`.
+
+```bash
+# mongosh -u root -p rootpw
+Current Mongosh Log ID:	666c1b91fc5edebf878db5fa
+Connecting to:		mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.6
+Using MongoDB:		7.0.11
+Using Mongosh:		2.2.6
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+------
+The server generated these startup warnings when booting
+2024-06-14T10:27:42.826+00:00: Using the XFS filesystem is strongly recommended with the WiredTiger storage engine. See http://dochub.mongodb.org/core/prodnotes-filesystem
+2024-06-14T10:27:43.641+00:00: /sys/kernel/mm/transparent_hugepage/enabled is 'always'. We suggest setting it to 'never' in this binary version
+2024-06-14T10:27:43.641+00:00: vm.max_map_count is too low
+------
+```
+
+Show the databases.
+
+```bash
+test> show dbs
+admin       100.00 KiB
+config       12.00 KiB
+local        72.00 KiB
+urlservice    8.00 KiB
+```
+
+Use the `urlservice` database.
+
+```bash
+test> use urlservice
+switched to db urlservice
+urlservice> show collections
+urls
+```
+
+Find our documents.
+
+```bash
+urlservice> db.urls.find()
+[
+{
+_id: ObjectId('666c1be6a17e5f571be9bbad'),
+shortUrl: '7765',
+longUrl: 'http://www.google.com',
+userid: '007',
+created: ISODate('2024-06-14T10:31:02.079Z'),
+updated: ISODate('2024-06-14T10:31:02.079Z'),
+_class: 'io.jumper.urlservice.model.UrlData'
+}
+]
+```
+
+Find a specific document.
+
+```bash
+urlservice> db.urls.find({shortUrl:'7765'})
+[
+  {
+    _id: ObjectId('666c1be6a17e5f571be9bbad'),
+    shortUrl: '7765',
+    longUrl: 'http://www.google.com',
+    userid: '007',
+    created: ISODate('2024-06-14T10:31:02.079Z'),
+    updated: ISODate('2024-06-14T10:31:02.079Z'),
+    _class: 'io.jumper.urlservice.model.UrlData'
+  }
+]
+```

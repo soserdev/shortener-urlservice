@@ -1,23 +1,21 @@
 package io.jumper.urlservice.repository;
 
+import io.jumper.urlservice.TestcontainersConfiguration;
 import io.jumper.urlservice.model.UrlData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.MongoDBContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
+@Import(TestcontainersConfiguration.class)
 @DataMongoTest
 class UrlRepositoryTest {
 
-    @Container
-    @ServiceConnection
-    static MongoDBContainer mongo = new MongoDBContainer("mongo:7.0.11").withExposedPorts(27017);
+    @Autowired
+    MongoDBContainer mongo;
 
     @Autowired
     UrlRepository repository;
