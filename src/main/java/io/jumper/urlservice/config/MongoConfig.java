@@ -13,14 +13,19 @@ import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 
 
+/*
 @Configuration
-@ConfigurationProperties(prefix = "io.jumper.api.mongodb", ignoreUnknownFields = true)
+@ConfigurationProperties(prefix = "spring.data.mongodb", ignoreUnknownFields = true)
 @Setter
+*/
+
 @Slf4j
 public class MongodbConfig extends AbstractMongoClientConfiguration {
 
     private String host;
     private String database;
+
+    private String uri;
 
     @Bean
     @Override
@@ -45,10 +50,11 @@ public class MongodbConfig extends AbstractMongoClientConfiguration {
         builder.applyConnectionString(connectionString);
     }
 
+    /*
     @Bean
     MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
         return new MongoTransactionManager(dbFactory);
     }
-
+*/
 }
 
