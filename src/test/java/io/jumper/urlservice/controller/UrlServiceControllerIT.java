@@ -1,52 +1,67 @@
 package io.jumper.urlservice.controller;
 
+import io.jumper.urlservice.TestcontainersConfiguration;
 import io.jumper.urlservice.model.UrlData;
 import io.jumper.urlservice.repository.UrlRepository;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.*;
+import org.testcontainers.containers.MongoDBContainer;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// @SpringBootTest
+@Import(TestcontainersConfiguration.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UrlServiceControllerIT {
 
     @Autowired
-    UrlServiceController urlServiceController;
+    MongoDBContainer mongo;
+
+    @Autowired
+    TestRestTemplate restTemplate;
 
     @Autowired
     UrlRepository urlRepository;
 
     @Test
-    void createFindAndDelete() {
-        var urlData = UrlData.builder()
-                .longUrl("http://long-url/")
-                .shortUrl("short-url")
-                .userid("userid")
-                .build();
-        var responseEntity = urlServiceController.create(urlData);
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(responseEntity.getBody()).isNotNull();
-        assertThat(responseEntity.getBody().getId()).isNotNull();
-        assertThat(responseEntity.getBody().getShortUrl()).isEqualTo(urlData.getShortUrl());
-        assertThat(responseEntity.getBody().getLongUrl()).isEqualTo(urlData.getLongUrl());
-        assertThat(responseEntity.getBody().getUserid()).isEqualTo(urlData.getUserid());
-        assertThat(responseEntity.getBody().getCreated()).isNotNull();
-        assertThat(responseEntity.getBody().getUpdated()).isNotNull();
+    void contextLoads() {
+        assertThat(mongo.isCreated()).isTrue();
+        assertThat(mongo.isRunning()).isTrue();
+    }
 
-        Optional<UrlData> found = urlRepository.findById(responseEntity.getBody().getId());
+    @Test
+    void shouldCreateNewUrl_WhenUrlIsValid() throws JSONException {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        var url = new JSONObject();
+        url.put("shortUrl", "short-url");
+        url.put("longUrl", "http://long-url/");
+        url.put("userid", "user-id");
+
+        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getShortUrl()).isEqualTo("short-url");
+        assertThat(response.getBody().getLongUrl()).isEqualTo("http://long-url/");
+        assertThat(response.getBody().getUserid()).isEqualTo("user-id");
+        assertThat(response.getBody().getId()).isNotBlank();
+        assertThat(response.getBody().getCreated()).isNotNull();
+        assertThat(response.getBody().getUpdated()).isNotNull();
+
+        Optional<UrlData> found = urlRepository.findById(response.getBody().getId());
         assertThat(found).isNotNull();
         assertThat(found.isPresent()).isTrue();
-        assertThat(found.get().getShortUrl()).isEqualTo((urlData.getShortUrl()));
-        assertThat(found.get().getLongUrl()).isEqualTo(urlData.getLongUrl());
-        assertThat(found.get().getUserid()).isEqualTo(urlData.getUserid());
+        assertThat(found.get().getShortUrl()).isEqualTo("short-url");
+        assertThat(found.get().getLongUrl()).isEqualTo("http://long-url/");
+        assertThat(found.get().getUserid()).isEqualTo("user-id");
         assertThat(found.get().getCreated()).isNotNull();
-
-        urlRepository.delete(found.get());
-
+        assertThat(found.get().getUpdated()).isNotNull();
     }
 }
