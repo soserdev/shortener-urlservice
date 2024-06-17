@@ -439,3 +439,11 @@ Create a short url.
 curl -v -H'Content-Type: application/json' -d'{"shortUrl": "7765","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:8082/api/v1/urlservice
 ```
 
+## Choosing Between MockMvc and @SpringBootTest for Controller Testing
+
+You can use either `@WebMvcTest` and `MockMvc` or `@SpringBootTest` and `TestRestTemplate` for Controller Testing. 
+`MockMvc` is a faster and more lightweight slice-test.
+On the other side `@SpringBootTest` starts the entire application context and a real servlet container, 
+where you can ensure that all filters and converters are properly executed.
+See [Choosing Between MockMvc and @SpringBootTest for Controller Testing](https://rieckpil.de/choosing-between-mockmvc-and-springboottest-for-testing/).
+
