@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -27,7 +28,7 @@ public class UrlServiceController {
     }
 
     @PostMapping(SERVICE_API_V1)
-    public ResponseEntity<UrlData> create(@RequestBody UrlData url) {
+    public ResponseEntity<UrlData> create(@RequestBody @Validated UrlData url) {
         var savedUrl = urlService.saveUrl(url.getShortUrl(), url.getLongUrl(),url.getUserid())
                 .orElseThrow(() -> new UrlServiceException("Url not created!"));
 

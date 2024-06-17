@@ -55,6 +55,7 @@ class UrlServiceControllerIT {
         assertThat(response.getBody().getCreated()).isNotNull();
         assertThat(response.getBody().getUpdated()).isNotNull();
 
+        // check if url is stored in repository
         Optional<UrlData> found = urlRepository.findById(response.getBody().getId());
         assertThat(found).isNotNull();
         assertThat(found.isPresent()).isTrue();
@@ -63,5 +64,16 @@ class UrlServiceControllerIT {
         assertThat(found.get().getUserid()).isEqualTo("user-id");
         assertThat(found.get().getCreated()).isNotNull();
         assertThat(found.get().getUpdated()).isNotNull();
+    }
+
+    @Test
+    void shouldNotCreateNewUrl_WhenUrlIsInvalid() throws JSONException {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        var url = new JSONObject();
+        url.put("shortUrl", "");
+
+        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

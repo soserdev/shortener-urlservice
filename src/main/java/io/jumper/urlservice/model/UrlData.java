@@ -1,5 +1,7 @@
 package io.jumper.urlservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Document(collection = "urls")
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UrlData {
 
     public UrlData(String shortUrl, String longUrl, String userid) {
@@ -24,11 +27,14 @@ public class UrlData {
     @Id
     private String id;
 
+    @NotBlank(message = "shortUrl is mandatory")
     @Indexed(unique = true)
     private String shortUrl;
 
+    @NotBlank(message = "longUrl is mandatory")
     private String longUrl;
 
+    @NotBlank(message = "userId is mandatory")
     private String userid;
 
     private LocalDateTime created;

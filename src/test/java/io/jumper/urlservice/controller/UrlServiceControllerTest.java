@@ -66,17 +66,23 @@ class UrlServiceControllerTest {
                 .id(UUID.randomUUID().toString())
                 .shortUrl("short-url")
                 .longUrl("http://longurl.com/")
+                .userid("user-id")
                 .build();
-        var jsonData = objectMapper.writeValueAsString(UrlData.builder().shortUrl(urlData.getShortUrl()).longUrl(urlData.getLongUrl()).build());
+        var jsonData = objectMapper.writeValueAsString(UrlData.builder()
+                        .shortUrl(urlData.getShortUrl())
+                        .longUrl(urlData.getLongUrl())
+                        .userid(urlData.getUserid())
+                        .build());
 
         given(urlService.saveUrl(any(), any(), any())).willReturn(Optional.of(urlData));
-        var resultActions = mockMvc.perform(post(UrlServiceController.SERVICE_API_V1)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonData));
 
-        resultActions.andExpect(status().isCreated())
+        mockMvc.perform(post(UrlServiceController.SERVICE_API_V1)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonData))
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(urlData.getId())));
+
         // Assure @RequestBody IS set...
         then(urlService).should().saveUrl(eq(urlData.getShortUrl()), eq(urlData.getLongUrl()), eq(urlData.getUserid()));
     }
