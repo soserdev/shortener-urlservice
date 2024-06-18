@@ -3,6 +3,7 @@ package io.jumper.urlservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jumper.urlservice.model.UrlData;
 import io.jumper.urlservice.service.UrlService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -10,12 +11,12 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -36,18 +37,26 @@ class UrlServiceControllerTest {
 
     @Test
     void getLongUrlFound() throws Exception {
+        var now = LocalDateTime.of(2024,1,2,3,4,5);
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
                 .shortUrl("0abcd")
                 .longUrl("http://abc.io/")
+                .userid("user-id")
+                .created(now)
+                .updated(now)
                 .build();
         given(urlService.getLongUrl(any())).willReturn(Optional.of(urlData));
-        var actions = mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getShortUrl()));
-        actions.andExpect(status().isOk())
+
+        mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getShortUrl()))
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(urlData.getId())))
                 .andExpect(jsonPath("$.shortUrl", is(urlData.getShortUrl())))
-                .andExpect(jsonPath("$.longUrl", is(urlData.getLongUrl())));
+                .andExpect(jsonPath("$.longUrl", is(urlData.getLongUrl())))
+                .andExpect(jsonPath("$.userid", is(urlData.getUserid())))
+                .andExpect(jsonPath("$.created", is("2024-01-02T03:04:05")))
+                .andExpect(jsonPath("$.updated", is("2024-01-02T03:04:05")));
         // Assure we call our service with the right parameter
         then(urlService).should().getLongUrl(urlData.getShortUrl());
     }
@@ -56,8 +65,8 @@ class UrlServiceControllerTest {
     void getLongUrlNotFound() throws Exception {
         var shortUrl = "0abc";
         given(urlService.getLongUrl(any())).willReturn(Optional.empty());
-        var actions = mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + shortUrl));
-        actions.andExpect(status().isNotFound());
+        mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + shortUrl))
+                .andExpect(status().isNotFound());
     }
 
     @Test
