@@ -9,9 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,7 +59,6 @@ class UrlServiceImplTest {
     }
 
     @Test
-    @Transactional
     void saveUrl_ShouldSaveUrlData_WhenShortUrlIsUnique() {
         when(urlRepository.save(any(UrlData.class))).thenReturn(urlData);
 
@@ -71,4 +71,35 @@ class UrlServiceImplTest {
         verifyNoMoreInteractions(urlRepository);
     }
 
+    @Test
+    void updateUrl_ShouldSaveUpdatedUrlData_WhenUrlDataExists() {
+        var id = UUID.randomUUID().toString();
+        var now = LocalDateTime.now();
+        var yesterday = now.minusDays(1);
+        var existing = new UrlData(id, "shortUrl-old", "http://longurl-old.com", "user123", yesterday, yesterday);
+        var updated = new UrlData(id, "shortUrl", "http://longurl.com", "user123", yesterday, now);
+
+        when(urlRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(urlRepository.save(any(UrlData.class))).thenReturn(updated);
+
+        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com");
+
+        assertTrue(result.isPresent());
+        assertEquals("shortUrl", result.get().getShortUrl());
+        assertEquals("http://longurl.com", result.get().getLongUrl());
+        verify(urlRepository, times(1)).findById(any(String.class));
+        verify(urlRepository, times(1)).save(any(UrlData.class));
+        verifyNoMoreInteractions(urlRepository);
+    }
+
+    @Test
+    void updateUrl_ShouldReturnOptionalEmpty_WhenUrlDataNotExists() {
+        var id = UUID.randomUUID().toString();
+
+        when(urlRepository.findById(id)).thenReturn(Optional.empty());
+
+        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com");
+
+        assertTrue(result.isEmpty());
+    }
 }

@@ -19,8 +19,8 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UrlServiceController.class)
@@ -36,7 +36,7 @@ class UrlServiceControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    void getLongUrlFound() throws Exception {
+    void get_ShouldReturnUrlData_WhenShortUrlExists() throws Exception {
         var now = LocalDateTime.of(2024,1,2,3,4,5);
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
@@ -62,7 +62,7 @@ class UrlServiceControllerTest {
     }
 
     @Test
-    void getLongUrlNotFound() throws Exception {
+    void get_ShouldReturnNotFound_WhenShortUrlDoesNotExist() throws Exception {
         var shortUrl = "0abc";
         given(urlService.getLongUrl(any())).willReturn(Optional.empty());
         mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + shortUrl))
@@ -70,7 +70,7 @@ class UrlServiceControllerTest {
     }
 
     @Test
-    void create() throws Exception {
+    void post_ShouldCreateNewUrl_WhenUrlDataIsValid() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
                 .shortUrl("short-url")
@@ -94,5 +94,39 @@ class UrlServiceControllerTest {
 
         // Assure @RequestBody IS set...
         then(urlService).should().saveUrl(eq(urlData.getShortUrl()), eq(urlData.getLongUrl()), eq(urlData.getUserid()));
+    }
+
+    @Test
+    void put_ShouldUpdateUrlData_WhenUrlDataIsValid() throws Exception {
+        var urlData = UrlData.builder()
+                .id(UUID.randomUUID().toString())
+                .shortUrl("short-url")
+                .longUrl("http://longurl.com/")
+                .userid("user-id")
+                .build();
+        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl())).willReturn(Optional.of(urlData));
+        mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId()).contentType(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(urlData)))
+                .andExpect(status().isOk());
+        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl());
+        verifyNoMoreInteractions(urlService);
+    }
+
+    @Test
+    void put_ShouldThrowNotFound_WhenUrlWithIdNotExists() throws Exception {
+        var urlData = UrlData.builder()
+                .id(UUID.randomUUID().toString())
+                .shortUrl("short-url")
+                .longUrl("http://longurl.com/")
+                .userid("user-id")
+                .build();
+        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl())).willReturn(Optional.empty());
+        mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId()).contentType(MediaType.APPLICATION_JSON)
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(urlData)))
+                .andExpect(status().isNotFound());
+        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl());
+        verifyNoMoreInteractions(urlService);
     }
 }

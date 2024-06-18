@@ -4,6 +4,7 @@ import io.jumper.urlservice.exception.ResourceNotFoundException;
 import io.jumper.urlservice.exception.UrlServiceException;
 import io.jumper.urlservice.model.UrlData;
 import io.jumper.urlservice.service.UrlService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class UrlServiceController {
     @GetMapping(SERVICE_API_V1 + "/{shortUrl}")
     public ResponseEntity<UrlData> getLongUrl(@PathVariable String shortUrl) {
         var url = urlService.getLongUrl(shortUrl)
-                .orElseThrow(() -> new ResourceNotFoundException("Resource '" + shortUrl + "' not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Resource for shortUrl: '" + shortUrl + "' not found!"));
         return new ResponseEntity<>(url, HttpStatus.OK);
     }
 
@@ -33,5 +34,12 @@ public class UrlServiceController {
                 .orElseThrow(() -> new UrlServiceException("Url not created!"));
 
         return new ResponseEntity<>(savedUrl, HttpStatus.CREATED);
+    }
+
+    @PutMapping(SERVICE_API_V1 + "/{id}")
+    public ResponseEntity<UrlData> update(@PathVariable String id, @RequestBody @Valid UrlData url) {
+        var updatedUrl = urlService.updateUrl(id, url.getShortUrl(), url.getLongUrl())
+                .orElseThrow(() -> new ResourceNotFoundException("Resource with id: '" + id + "' not found!"));
+        return new ResponseEntity<>(updatedUrl, HttpStatus.OK);
     }
 }
