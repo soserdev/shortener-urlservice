@@ -105,4 +105,20 @@ class UrlServiceControllerIT {
         assertThat(found.get().getLongUrl()).isEqualTo("http://long-url/");
         assertThat(found.get().getUserid()).isEqualTo("user-id");
     }
+
+    @Test
+    void shouldReturnHttpStatusUnprocessableEntity_WhenShortUrlIsNotUnique() throws JSONException {
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        var url = new JSONObject();
+        url.put("shortUrl", "short-url");
+        url.put("longUrl", "http://long-url/");
+        url.put("userid", "user-id");
+
+        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        ResponseEntity<UrlData> unprocessable = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        assertThat(unprocessable.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
 }
