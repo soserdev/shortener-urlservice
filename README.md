@@ -439,6 +439,35 @@ Create a short url.
 curl -v -H'Content-Type: application/json' -d'{"shortUrl": "7765","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:8082/api/v1/urlservice
 ```
 
+### PUT-Request
+
+In order to update a entity, we first have to create one.
+
+```bash
+curl -v -H'Content-Type: application/json' -d'{"shortUrl": "7765c","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:8082/api/v1/urlservice | jq
+{
+  "id": "6672fcf9bb0b5e097c2f1631",
+  "shortUrl": "7765c",
+  "longUrl": "http://www.google.com",
+  "userid": "007",
+  "created": "2024-06-19T17:44:57.719322",
+  "updated": "2024-06-19T17:44:57.71934"
+```
+
+Now we can update the entity.
+
+```bash
+curl -v -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "userid": "007"}' http://localhost:8082/api/v1/urlservice/6672fcf9bb0b5e097c2f1631 | jq
+{
+  "id": "6672fcf9bb0b5e097c2f1631",
+  "shortUrl": "new-short-url",
+  "longUrl": "http://new-long-url",
+  "userid": "007",
+  "created": "2024-06-19T17:44:57.719",
+  "updated": "2024-06-19T17:48:34.616052"
+}
+```
+
 ## Choosing Between MockMvc and @SpringBootTest for Controller Testing
 
 You can use either `@WebMvcTest` and `MockMvc` or `@SpringBootTest` and `TestRestTemplate` for Controller Testing. 
