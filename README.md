@@ -476,3 +476,81 @@ On the other side `@SpringBootTest` starts the entire application context and a 
 where you can ensure that all filters and converters are properly executed.
 See [Choosing Between MockMvc and @SpringBootTest for Controller Testing](https://rieckpil.de/choosing-between-mockmvc-and-springboottest-for-testing/).
 
+# Clean Code
+
+## Code-Coverage with Jacoco
+
+JaCoCo (Java Code Coverage) is an open-source tool used to measure and report the extent to which Java code is executed during tests. 
+It is widely used in Spring Boot applications to ensure code quality and reliability by identifying untested parts of the codebase.
+
+JaCoCo can be integrated using the Maven plugin. This involves adding the JaCoCo plugin to the pom.xml file and configuring it to generate coverage reports during the build process.
+
+```xml
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.12</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>report</id>
+            <phase>prepare-package</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+After executing the command `mvn clean verify` we can take a look at the `target/site/jacoco/index.html` page to see what the generated report looks like.
+
+In a real world project, as developments go further, we need to keep track of the code coverage score.
+JaCoCo offers a simple way of declaring minimum requirements that should be met, otherwise the build will fail.
+
+```xml
+<execution>
+    <id>jacoco-check</id>
+    <goals>
+        <goal>check</goal>
+    </goals>
+    <configuration>
+        <rules>
+            <rule>
+                <element>PACKAGE</element>
+                <limits>
+                    <limit>
+                        <counter>LINE</counter>
+                        <value>COVEREDRATIO</value>
+                        <minimum>0.30</minimum>
+                    </limit>
+                </limits>
+            </rule>
+        </rules>
+    </configuration>
+</execution>
+```
+
+It is recommended to exclude certain packages or directories, e.g. `model` package, since we don't test them.
+
+```xml
+<configuration>
+    <excludes>
+        <exclude>**/config/*</exclude>
+        <exclude>**/model/*</exclude>
+        <exclude>**/repository/*</exclude>
+        <exclude>**/exception/*</exclude>
+    </excludes>
+</configuration>
+```
+
+A good introduction to _Jacoco_ is written by [Baeldung - Intro to JaCoCo](https://www.baeldung.com/jacoco)
+
+Examples can be found here:
+- [React & Spring Boot Hateoas Driven Fullstack Application on Kubernetes](https://suaybsimsek58.medium.com/react-spring-boot-hateoas-driven-fullstack-application-on-kubernetes-7ea33894d12b)
+- [Jacoco maven plugin](https://github.com/susimsek/HateoasFullstackApp/blob/main/hateoas-backend/pom.xml)
+- [Hateoas Fullstack App Using Spring Boot & React](https://github.com/susimsek/HateoasFullstackApp)
