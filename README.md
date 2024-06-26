@@ -554,3 +554,10 @@ Examples can be found here:
 - [React & Spring Boot Hateoas Driven Fullstack Application on Kubernetes](https://suaybsimsek58.medium.com/react-spring-boot-hateoas-driven-fullstack-application-on-kubernetes-7ea33894d12b)
 - [Jacoco maven plugin](https://github.com/susimsek/HateoasFullstackApp/blob/main/hateoas-backend/pom.xml)
 - [Hateoas Fullstack App Using Spring Boot & React](https://github.com/susimsek/HateoasFullstackApp)
+
+
+## References
+
+- [Dan Vega - Test Driven Development (TDD) in Spring](https://www.youtube.com/watch?v=-H5sud1-K5A&t=2297s)
+- [Dan Vega - Spring Boot Testcontainers - Integration Testing made easy!](https://www.youtube.com/watch?v=erp-7MCK5BU&t=444s)
+
