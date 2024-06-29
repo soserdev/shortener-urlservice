@@ -15,12 +15,18 @@ spec:
       containers:
         - name: mongodb
           image: mongo:7.0.11
+          env:
+            - name:  MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: rootpw
           resources:
             limits:
               memory: 512Mi
           volumeMounts:
             - name: mongo-pv-storage
               mountPath: /data/db
+
       volumes:
         - name: mongo-pv-storage
           #          hostPath:

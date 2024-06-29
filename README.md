@@ -207,39 +207,6 @@ urlservice> db.urls.find({shortUrl:'7765'})
 ]
 ```
 
-## Port Forwarding
-
-In order to access the _url-service_ we have to use _port-forwarding_.
-
-```bash
-% kubectl port-forward service/jumper-urlservice 30000:80
-Forwarding from 127.0.0.1:30000 -> 80
-Forwarding from [::1]:30000 -> 80
-Handling connection for 30000
-```
-Now we can use port `30000` to access the service.
-
-```bash
-% curl -v localhost:30000/shorturl/MjQ0MD
-*   Trying [::1]:30000...
-* Connected to localhost (::1) port 30000
-> GET /shorturl/MjQ0MD HTTP/1.1
-> Host: localhost:30000
-> User-Agent: curl/8.4.0
-> Accept: */*
->
-< HTTP/1.1 404
-< Vary: Origin
-< Vary: Access-Control-Request-Method
-< Vary: Access-Control-Request-Headers
-< Content-Type: application/json
-< Transfer-Encoding: chunked
-< Date: Fri, 14 Jun 2024 17:05:12 GMT
-<
-* Connection #0 to host localhost left intact
-{"timestamp":"2024-06-14T17:05:12.504+00:00","status":404,"error":"Not Found","path":"/shorturl/MjQ0MD"}
-```
-
 
 ## Kubernetes
 
@@ -282,7 +249,7 @@ spec:
 status: {}
 ```
 
-#### Create a Kubernetes Service using `kubectl`
+### Create a Kubernetes Service using `kubectl`
 
 Now we need a kubernetes service for our deployment.
 
@@ -313,7 +280,7 @@ status:
   loadBalancer: {}
 ```
 
-#### The final Kubernetes Deployment and Service
+### The final Kubernetes Deployment and Service
 
 The final `api.yml` file contains the following configuration.
 
@@ -422,6 +389,46 @@ local   40.00 KiB
 ```
 
 In order to get logged out we have to `exit` twice!
+
+### Port Forwarding
+
+In order to access the _url-service_ we have to use _port-forwarding_.
+
+```bash
+% kubectl port-forward service/jumper-urlservice 30000:80
+Forwarding from 127.0.0.1:30000 -> 80
+Forwarding from [::1]:30000 -> 80
+Handling connection for 30000
+```
+Now we can use port `30000` to access the service.
+
+```bash
+% curl -v localhost:30000/shorturl/MjQ0MD
+*   Trying [::1]:30000...
+* Connected to localhost (::1) port 30000
+> GET /shorturl/MjQ0MD HTTP/1.1
+> Host: localhost:30000
+> User-Agent: curl/8.4.0
+> Accept: */*
+>
+< HTTP/1.1 404
+< Vary: Origin
+< Vary: Access-Control-Request-Method
+< Vary: Access-Control-Request-Headers
+< Content-Type: application/json
+< Transfer-Encoding: chunked
+< Date: Fri, 14 Jun 2024 17:05:12 GMT
+<
+* Connection #0 to host localhost left intact
+{"timestamp":"2024-06-14T17:05:12.504+00:00","status":404,"error":"Not Found","path":"/shorturl/MjQ0MD"}
+```
+
+### Readiness & Liveness & Graceful Shutdown
+
+In order to offer Readiness & Liveness we have to configure it in our deployment file.
+See [Spring Framework 6: Beginner to Guru - 509. KBE - Add Readiness and Liveness Probe Configuration](https://www.udemy.com/course/spring-framework-6-beginner-to-guru/learn/lecture/36116594)
+and the [Source Code](https://github.com/springframeworkguru/kbe-sb-microservices/blob/main/k8s-scripts/beer-service-deployment.yml).
+
 
 ## UserService API
 
