@@ -1,5 +1,8 @@
 # Jumper Urlservice
 
+>Not finished yet ;)
+> 
+
 ## Docker 
 
 ### Build Docker Image using `docker build`
@@ -110,7 +113,7 @@ $ docker image inspect 7ae7913b4898 | grep Architecture
 ### Start a local mongo database
 
 If you want to start the app in _Intellij_ you don't need to start the database via docker compose.
-Just start the app and _Intellij_ will start the a container using the `compose.yml`.
+Since this project uses testcontainers just start the app in _Intellij_ and  `compose.yml` will be used to start mongo.
 
 But there is a also a `docker-compose.yaml` file that allows us to start a mongo and mongo express on `localhost`.
 In order to start them for local development using docker compose you can use the following docker command.
@@ -125,9 +128,11 @@ If you want to shut them down, you have to use the following command.
 docker compose -f docker-compose.yml down
 ```
 
+
 If you don't specify a file, docker compose will use the `compose.yml` file.
 
 ## Use docker for development
+
 
 Let's login into our docker container.
 
