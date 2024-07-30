@@ -1,7 +1,19 @@
 # Jumper Urlservice
 
->Not finished yet ;)
-> 
+The _Jumper Urlservice_ stores `UrlData` for an `UrlShortener`.
+
+This project shows
+
+- how to create a docker image
+- how to deploy the service to k8s
+- how to do some _continuous integration_ using _github actions_
+- how to create _integration tests_ using [testcontainers](https://testcontainers.com) to test the `UrlRepository` and `UrlServiceController`.
+- how to run unit and integration tests
+
+Prerequisites
+
+- you need to have _Docker_ or _Docker Desktop_ running in order to use testcontainers
+
 
 ## Docker 
 
@@ -480,7 +492,25 @@ curl -v -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url
 }
 ```
 
-## Choosing Between MockMvc and @SpringBootTest for Controller Testing
+## Quality Assurance
+
+### Running unit tests
+
+To run all unit tests just type the following command.
+
+```bash
+mvn test
+```
+
+### Running Integration tests
+
+Since the _failsafe-plugin_ is configured in the `pom.xml` file you can simply run integration tests using maven.
+
+```bash
+mvn verify
+```
+
+### Choosing Between MockMvc and @SpringBootTest for Controller Testing
 
 You can use either `@WebMvcTest` and `MockMvc` or `@SpringBootTest` and `TestRestTemplate` for Controller Testing. 
 `MockMvc` is a faster and more lightweight slice-test.
@@ -488,9 +518,7 @@ On the other side `@SpringBootTest` starts the entire application context and a 
 where you can ensure that all filters and converters are properly executed.
 See [Choosing Between MockMvc and @SpringBootTest for Controller Testing](https://rieckpil.de/choosing-between-mockmvc-and-springboottest-for-testing/).
 
-# Clean Code
-
-## Code-Coverage with Jacoco
+### Code-Coverage with Jacoco
 
 JaCoCo (Java Code Coverage) is an open-source tool used to measure and report the extent to which Java code is executed during tests. 
 It is widely used in Spring Boot applications to ensure code quality and reliability by identifying untested parts of the codebase.
@@ -560,7 +588,7 @@ It is recommended to exclude certain packages or directories, e.g. `model` packa
 </configuration>
 ```
 
-A good introduction to _Jacoco_ is written by [Baeldung - Intro to JaCoCo](https://www.baeldung.com/jacoco)
+You'll find a good introduction to _Jacoco_ at [Baeldung - Intro to JaCoCo](https://www.baeldung.com/jacoco)
 
 Examples can be found here:
 - [React & Spring Boot Hateoas Driven Fullstack Application on Kubernetes](https://suaybsimsek58.medium.com/react-spring-boot-hateoas-driven-fullstack-application-on-kubernetes-7ea33894d12b)
@@ -572,4 +600,7 @@ Examples can be found here:
 
 - [Dan Vega - Test Driven Development (TDD) in Spring](https://www.youtube.com/watch?v=-H5sud1-K5A&t=2297s)
 - [Dan Vega - Spring Boot Testcontainers - Integration Testing made easy!](https://www.youtube.com/watch?v=erp-7MCK5BU&t=444s)
+- [datmt - Testcontainers with MongoDB & Spring Boot](https://www.youtube.com/watch?v=9_1hkYVQ1eI)
+- [Hateoas Fullstack App Using Spring Boot & React](https://github.com/susimsek/HateoasFullstackApp/tree/main)
+- [Techworld with Nana - GitHub Actions Tutorial - Basic Concepts and CI/CD Pipeline with Docker](https://www.youtube.com/watch?v=R8_veQiYBjI)
 
