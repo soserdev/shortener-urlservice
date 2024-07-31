@@ -302,6 +302,44 @@ status:
 The final `api.yml` file contains the following configuration.
 
 ```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jumper-urlservice
+  labels:
+    app: jumper-urlservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jumper-urlservice
+  template:
+    metadata:
+      labels:
+        app: jumper-urlservice
+    spec:
+      containers:
+      - name: jumper-urlservice
+        image: somnidev/jumper-urlservice:0.0.1-SNAPSHOT
+        env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: production
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jumper-urlservice
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+
+  selector:
+    app: jumper-urlservice
+  type: ClusterIP
 ```
 
 ### Deploy our service to Kubnernetes
