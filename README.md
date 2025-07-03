@@ -1,4 +1,4 @@
-# Jumper Urlservice
+# Shortener Urlservice
 
 The _Jumper Urlservice_ stores `UrlData` for an `UrlShortener`.
 
