@@ -8,15 +8,15 @@
 		<version>3.3.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>io.jumper</groupId>
-	<artifactId>jumper-urlservice</artifactId>
+	<groupId>dev.smo.shortener</groupId>
+	<artifactId>shortener-urlservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>urlservice</name>
-	<description>Demo project for Spring Boot</description>
+	<name>shortener-urlservice</name>
+	<description>Shortener UrlService stores UrlData in MongoDB.</description>
 	<properties>
 		<java.version>21</java.version>
-		<docker.image.prefix>somnidev</docker.image.prefix>
-		<docker.image.name>jumper-urlservice</docker.image.name>
+		<docker.image.prefix>soserdev</docker.image.prefix>
+		<docker.image.name>shortener-urlservice</docker.image.name>
 		<maven.failsafe.version>3.3.1</maven.failsafe.version>
 	</properties>
 

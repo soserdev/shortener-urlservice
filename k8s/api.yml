@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jumper-urlservice
+  name: shortener-urlservice
   labels:
-    app: jumper-urlservice
+    app: shortener-urlservice
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jumper-urlservice
+      app: shortener-urlservice
   template:
     metadata:
       labels:
-        app: jumper-urlservice
+        app: shortener-urlservice
     spec:
       containers:
-      - name: jumper-urlservice
-        image: somnidev/jumper-urlservice:0.0.1-SNAPSHOT
+      - name: shortener-urlservice
+        image: soserdev/shortener-urlservice:0.0.1-SNAPSHOT
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: production
@@ -25,7 +25,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: jumper-urlservice
+  name: shortener-urlservice
 spec:
   ports:
   - name: http
@@ -34,5 +34,5 @@ spec:
     targetPort: 80
 
   selector:
-    app: jumper-urlservice
+    app: shortener-urlservice
   type: ClusterIP

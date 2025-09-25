@@ -37,7 +37,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: jumper-mongodb
+  name: shortener-mongodb
 spec:
   selector:
     app: mongodb

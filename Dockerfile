@@ -7,7 +7,7 @@ COPY src src
 COPY pom.xml .
 
 RUN --mount=type=cache,target=/root/.m2 ./mvnw package -DskipTests
-RUN java -Djarmode=layertools -jar target/jumper-urlservice-0.0.1-SNAPSHOT.jar extract --destination target/extracted
+RUN java -Djarmode=layertools -jar target/shortener-urlservice-0.0.1-SNAPSHOT.jar extract --destination target/extracted
 
 
 FROM eclipse-temurin:21-jre-alpine

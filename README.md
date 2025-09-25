@@ -1,6 +1,6 @@
 # Shortener Urlservice
 
-The _Jumper Urlservice_ stores `UrlData` for an `UrlShortener`.
+The _Shortener Urlservice_ stores `UrlData` for an `UrlShortener`.
 
 This project shows
 
@@ -22,7 +22,7 @@ Prerequisites
 Build docker image on MacOS using docker
 
 ```bash
-docker build  -t jumper/jumper-urlservice:latest -t jumper/jumper-urlservice:0.1 -f Dockerfile .
+docker build  -t soserdev/shortener-urlservice:latest -t soserdev/shortener-urlservice:0.1 -f Dockerfile .
 ```
 
 ### Build Docker Image using maven
@@ -93,7 +93,7 @@ We need some additional configuration in our `pom.xml`.
             <includeLayerTools>true</includeLayerTools>
         </layers>
         <image>
-            <name>jumper/jumper-urlservice:alpaquita-pack</name>
+            <name>soserdev/shortener-urlservice:alpaquita-pack</name>
             <builder>bellsoft/buildpacks.builder:musl</builder>
             <env>
                 <BP_JVM_VERSION>17</BP_JVM_VERSION>
@@ -109,9 +109,9 @@ We need some additional configuration in our `pom.xml`.
 
 ```bash
 $ docker image ls | grep url
-somnidev/jumper-urlservice                0.0.1-SNAPSHOT                                                                7ae7913b4898   About a minute ago   217MB
-somnidev/jumper-urlservice                latest                                                                        7ae7913b4898   About a minute ago   217MB
-jumper/jumper-urlservice                  alpaquita-pack                                                                b2f191cbc2af   44 years ago         112MB
+soserdev/shortener-urlservice                0.0.1-SNAPSHOT                                                                7ae7913b4898   About a minute ago   217MB
+soserdev/shortener-urlservice                latest                                                                        7ae7913b4898   About a minute ago   217MB
+shortener/shortener-urlservice                  alpaquita-pack                                                                b2f191cbc2af   44 years ago         112MB
 ```
 In order to check the architecture the image has, you can use the following commands.
 
@@ -245,23 +245,23 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    app: jumper-urlservice
-  name: jumper-urlservice
+    app: shortener-urlservice
+  name: shortener-urlservice
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jumper-urlservice
+      app: shortener-urlservice
   strategy: {}
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: jumper-urlservice
+        app: shortener-urlservice
     spec:
       containers:
-        - image: somnidev/jumper-urlservice
-          name: jumper-urlservice
+        - image: soserdev/shortener-urlservice
+          name: shortener-urlservice
           resources: {}
 status: {}
 ```
@@ -282,8 +282,8 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    app: jumper-urlservice
-  name: jumper-urlservice
+    app: shortener-urlservice
+  name: shortener-urlservice
 spec:
   ports:
   - name: 8080-8080
@@ -291,7 +291,7 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    app: jumper-urlservice
+    app: shortener-urlservice
   type: ClusterIP
 status:
   loadBalancer: {}
@@ -305,22 +305,22 @@ The final `api.yml` file contains the following configuration.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jumper-urlservice
+  name: shortener-urlservice
   labels:
-    app: jumper-urlservice
+    app: shortener-urlservice
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jumper-urlservice
+      app: shortener-urlservice
   template:
     metadata:
       labels:
-        app: jumper-urlservice
+        app: shortener-urlservice
     spec:
       containers:
-      - name: jumper-urlservice
-        image: somnidev/jumper-urlservice:0.0.1-SNAPSHOT
+      - name: shortener-urlservice
+        image: soserdev/shortener-urlservice:0.0.1-SNAPSHOT
         env:
           - name: SPRING_PROFILES_ACTIVE
             value: production
@@ -329,7 +329,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: jumper-urlservice
+  name: shortener-urlservice
 spec:
   ports:
   - name: http
@@ -338,7 +338,7 @@ spec:
     targetPort: 80
 
   selector:
-    app: jumper-urlservice
+    app: shortener-urlservice
   type: ClusterIP
 ```
 
@@ -392,7 +392,7 @@ NAME                          READY   STATUS    RESTARTS   AGE
 pod/mongodb-86fb498bb-zcpsg   1/1     Running   0          12m
 
 NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
-service/jumper-mongodb   ClusterIP   10.108.219.137   <none>        27017/TCP   12m
+service/shortener-mongodb   ClusterIP   10.108.219.137   <none>        27017/TCP   12m
 service/kubernetes       ClusterIP   10.96.0.1        <none>        443/TCP     5d20h
 
 NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
@@ -450,7 +450,7 @@ In order to get logged out we have to `exit` twice!
 In order to access the _url-service_ we have to use _port-forwarding_.
 
 ```bash
-% kubectl port-forward service/jumper-urlservice 30000:80
+% kubectl port-forward service/shortener-urlservice 30000:80
 Forwarding from 127.0.0.1:30000 -> 80
 Forwarding from [::1]:30000 -> 80
 Handling connection for 30000
