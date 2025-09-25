@@ -1,4 +1,4 @@
-package io.jumper.urlservice.exception;
+package dev.smo.shortener.urlservice.exception;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,6 @@
-package io.jumper.urlservice.repository;
+package dev.smo.shortener.urlservice.repository;
 
-import io.jumper.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.model.UrlData;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,7 +1,7 @@
-package io.jumper.urlservice.service;
+package dev.smo.shortener.urlservice.service;
 
-import io.jumper.urlservice.model.UrlData;
-import io.jumper.urlservice.repository.UrlRepository;
+import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

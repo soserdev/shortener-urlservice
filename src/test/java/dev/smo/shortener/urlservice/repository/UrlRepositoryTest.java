@@ -1,7 +1,7 @@
-package io.jumper.urlservice.repository;
+package dev.smo.shortener.urlservice.repository;
 
-import io.jumper.urlservice.TestcontainersConfiguration;
-import io.jumper.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.TestcontainersConfiguration;
+import dev.smo.shortener.urlservice.model.UrlData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;

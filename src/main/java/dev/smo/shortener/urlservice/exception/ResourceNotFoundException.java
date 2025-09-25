@@ -1,4 +1,4 @@
-package io.jumper.urlservice.exception;
+package dev.smo.shortener.urlservice.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

@@ -1,9 +1,8 @@
-package io.jumper.urlservice.controller;
+package dev.smo.shortener.urlservice.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jumper.urlservice.model.UrlData;
-import io.jumper.urlservice.service.UrlService;
-import org.hamcrest.Matchers;
+import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.service.UrlService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

@@ -1,8 +1,8 @@
-package io.jumper.urlservice.controller;
+package dev.smo.shortener.urlservice.controller;
 
-import io.jumper.urlservice.TestcontainersConfiguration;
-import io.jumper.urlservice.model.UrlData;
-import io.jumper.urlservice.repository.UrlRepository;
+import dev.smo.shortener.urlservice.TestcontainersConfiguration;
+import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;

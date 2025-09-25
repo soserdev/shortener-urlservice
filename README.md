@@ -202,7 +202,7 @@ longUrl: 'http://www.google.com',
 userid: '007',
 created: ISODate('2024-06-14T10:31:02.079Z'),
 updated: ISODate('2024-06-14T10:31:02.079Z'),
-_class: 'io.jumper.urlservice.model.UrlData'
+_class: 'model.dev.smo.shortener.urlservice.UrlData'
 }
 ]
 ```
@@ -219,7 +219,7 @@ urlservice> db.urls.find({shortUrl:'7765'})
     userid: '007',
     created: ISODate('2024-06-14T10:31:02.079Z'),
     updated: ISODate('2024-06-14T10:31:02.079Z'),
-    _class: 'io.jumper.urlservice.model.UrlData'
+    _class: 'model.dev.smo.shortener.urlservice.UrlData'
   }
 ]
 ```

@@ -1,4 +1,4 @@
-package io.jumper.urlservice;
+package dev.smo.shortener.urlservice;
 
 import org.springframework.boot.SpringApplication;
 

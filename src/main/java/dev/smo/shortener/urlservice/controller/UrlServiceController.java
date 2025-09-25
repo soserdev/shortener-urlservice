@@ -1,9 +1,9 @@
-package io.jumper.urlservice.controller;
+package dev.smo.shortener.urlservice.controller;
 
-import io.jumper.urlservice.exception.ResourceNotFoundException;
-import io.jumper.urlservice.exception.UrlServiceException;
-import io.jumper.urlservice.model.UrlData;
-import io.jumper.urlservice.service.UrlService;
+import dev.smo.shortener.urlservice.exception.ResourceNotFoundException;
+import dev.smo.shortener.urlservice.exception.UrlServiceException;
+import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.service.UrlService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

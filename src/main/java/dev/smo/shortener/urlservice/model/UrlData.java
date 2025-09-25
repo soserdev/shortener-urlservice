@@ -1,4 +1,4 @@
-package io.jumper.urlservice.model;
+package dev.smo.shortener.urlservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
