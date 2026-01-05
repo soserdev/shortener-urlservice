@@ -146,6 +146,9 @@ Create a short url:
 
 ```bash
 curl -s -H'Content-Type: application/json' -d'{"shortUrl": "7766","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:30000/api/v1/urlservice
+```
+
+```bash
 {"id":"68d6b245dc237d658611c09e","shortUrl":"7765","longUrl":"http://www.google.com","userid":"007","created":"2025-09-26T15:33:25.772331379","updated":"2025-09-26T15:33:25.772686546"
 ```
 
