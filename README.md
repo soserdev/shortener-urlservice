@@ -2,44 +2,112 @@
 
 ## About
 
-The _Shortener Urlservice_ stores `UrlData` for an `UrlShortener`.
+This is a simple _Shortener Urlservice_ that stores `UrlData` for an `UrlShortener`.
 
-This project:
+This project uses:
 
-- uses **Github Actions** to build the project, run the integration tests, create a docker image for linux and macos, and push it to **Docker Hub**
-- has _integration tests_ using [testcontainers](https://testcontainers.com) to test the `UrlRepository` and `UrlServiceController`.
-- can be deployed to k8s
+- Java
+- Spring Boot
+- MongoDB
 
-### Start a local mongo database for development
+**Github Actions** are used to build the project and run the integration tests. Additionally they create a **Docker Image** both for **Linux** and **MacOS**, and push the image to **Docker Hub** - see [soserdev/shortener-urlservice](https://hub.docker.com/repository/docker/soserdev/shortener-urlservice/general).
 
-If you want to start the app in _Intellij_ you don't need to start the database via docker compose.
-Since this project uses testcontainers just start the app in _Intellij_ and  `compose.yml` will be used to start mongodb.
+Furthermore there are **Integration tests** for the `UrlServiceController` that use [Testcontainers](https://testcontainers.com).
 
-But there is a also a `docker-compose.yaml` file that allows us to start a mongo and mongo express on `localhost`.
-In order to start them for local development using docker compose you can use the following docker command.
+This project is used by:
+
+- [shortener-backend](https://github.com/soserdev/shortener-backend)
+
+## Development
+
+The Urlservice uses MongoDB to store the ``UrlData`. We assume Docker Desktop is running in the background.
+
+- _Intellij_ uses the `compose.yml` to start MongoDB if you start the service 
+- `compose-express.yaml` starts mongo and mongo express
+- `compose-urlservice.yaml` starts the Urlservice and mongo
+
+## Usage Docker
+
+Build the docker image:
 
 ```bash
-docker compose -f docker-compose.yml up -d
+docker build  -t soserdev/shortener-urlservice:latest -t soserdev/shortener-urlservice:0.0.1 -f Dockerfile .
 ```
 
-If you want to shut them down, you have to use the following command.
+Start MongoDB using Docker:
 
 ```bash
-docker compose -f docker-compose.yml down
+docker compose -f compose.yml up -d
 ```
 
-If you don't specify a file, docker compose will use the `compose.yml` file.
+Shut it down:
 
-## Use docker for development
+```bash
+docker compose -f compose.yml down
+```
+
+## Run Integration tests
+
+Since the _failsafe-plugin_ is configured in the `pom.xml` file you can simply run integration tests using maven.
+
+```bash
+mvn verify
+```
 
 
-Let's login into our docker container.
+## UrlService API
+
+Create a short url:
+
+```bash
+curl -s -H'Content-Type: application/json' -d'{"shortUrl": "7766","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:30000/api/v1/urlservice
+```
+
+My result:
+
+```bash
+{"id":"68d6b245dc237d658611c09e","shortUrl":"7765","longUrl":"http://www.google.com","userid":"007","created":"2025-09-26T15:33:25.772331379","updated":"2025-09-26T15:33:25.772686546"
+```
+
+Get the short url:
+
+```bash
+curl -s http://localhost:30000/api/v1/urlservice/7765 | jq
+{
+  "id": "68d6b245dc237d658611c09e",
+  "shortUrl": "7765",
+  "longUrl": "http://www.google.com",
+  "userid": "007",
+  "created": "2025-09-26T15:33:25.772",
+  "updated": "2025-09-26T15:33:25.772",
+}
+```
+
+Update the url:
+
+```bash
+curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "userid": "007"}' http://localhost:30000/api/v1/urlservice/68d6b245dc237d658611c09e | jq
+
+{
+  "id": "68d6b245dc237d658611c09e",
+  "shortUrl": "new-short-url",
+  "longUrl": "http://new-long-url",
+  "userid": "007",
+  "created": "2025-09-26T15:33:25.772",
+  "updated": "2025-09-26T15:39:16.125269583"
+}
+```
+
+## Verify the result in MongDB
+
+
+Use `docker ps` to get the id - here we get `49e2c560b30b` - and login into the docker container.
 
 ```bash
 > docker exec -it 49e2c560b30b sh
 ```
 
-Let's login into our mongo database using `mongosh`.
+Now login into mongo using `mongosh`.
 
 ```bash
 # mongosh -u root -p rootpw
@@ -112,19 +180,24 @@ urlservice> db.urls.find({shortUrl:'7765'})
 ```
 
 
-### Deploy the UrlService to Kubnernetes
+## Kubernetes Usage
 
-In order to start MongoDB we first have to create our _persistent volume_ and the corresponding _persistent volume claim_.
+First things first, create the _persistent volume_ and the corresponding _persistent volume claim_.
 
 ```bash
-cd k8s
-kubectl apply -f storage.yaml
+kubectl apply -f k8s/storage.yaml
 ```
 
-Now we can start MongoDB itself.
+Start MongoDB:
 
 ```bash
-kubectl apply -f mongo.yaml
+kubectl apply -f k8s/mongo.yaml
+```
+
+Start the Urlservice:
+
+```bash
+kubectl apply -f k8s/api.yaml
 ```
 
 ### Port Forwarding
@@ -138,45 +211,3 @@ Forwarding from [::1]:30000 -> 80
 Handling connection for 30000
 ```
 Now we can use port `30000` to access the service.
-
-
-## UrlService API
-
-Create a short url:
-
-```bash
-curl -s -H'Content-Type: application/json' -d'{"shortUrl": "7766","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:30000/api/v1/urlservice
-```
-
-```bash
-{"id":"68d6b245dc237d658611c09e","shortUrl":"7765","longUrl":"http://www.google.com","userid":"007","created":"2025-09-26T15:33:25.772331379","updated":"2025-09-26T15:33:25.772686546"
-```
-
-Get the short url:
-
-```bash
-curl -s http://localhost:30000/api/v1/urlservice/7765 | jq
-{
-  "id": "68d6b245dc237d658611c09e",
-  "shortUrl": "7765",
-  "longUrl": "http://www.google.com",
-  "userid": "007",
-  "created": "2025-09-26T15:33:25.772",
-  "updated": "2025-09-26T15:33:25.772",
-}
-```
-
-Update the url:
-
-```bash
-curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "userid": "007"}' http://localhost:30000/api/v1/urlservice/68d6b245dc237d658611c09e | jq
-
-{
-  "id": "68d6b245dc237d658611c09e",
-  "shortUrl": "new-short-url",
-  "longUrl": "http://new-long-url",
-  "userid": "007",
-  "created": "2025-09-26T15:33:25.772",
-  "updated": "2025-09-26T15:39:16.125269583"
-}
-```

@@ -117,13 +117,13 @@ But there is a also a `docker-compose.yaml` file that allows us to start a mongo
 In order to start them for local development using docker compose you can use the following docker command.
 
 ```bash
-docker compose -f docker-compose.yml up -d
+docker compose -f compose-express.yml up -d
 ```
 
 If you want to shut them down, you have to use the following command.
 
 ```bash
-docker compose -f docker-compose.yml down
+docker compose -f compose-express.yml down
 ```
 
 
