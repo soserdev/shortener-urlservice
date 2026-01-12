@@ -115,6 +115,7 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 ### macOS ###
+
 # General
 .DS_Store
 .AppleDouble
