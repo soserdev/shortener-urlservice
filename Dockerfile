@@ -1,23 +1,27 @@
-# syntax=docker/dockerfile:experimental
-FROM eclipse-temurin:21-jdk-alpine as build
-WORKDIR /workspace/app
-COPY mvnw .
-COPY .mvn .mvn
-COPY src src
+# -------- Build Stage --------
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+
+WORKDIR /app
 COPY pom.xml .
+COPY src ./src
 
-RUN --mount=type=cache,target=/root/.m2 ./mvnw package -DskipTests
-RUN java -Djarmode=layertools -jar target/shortener-urlservice-0.0.1-SNAPSHOT.jar extract --destination target/extracted
+# Build with Maven (skip tests for speed)
+RUN mvn clean package -DskipTests
 
-
+# -------- Runtime Stage --------
 FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S demo && adduser -S demo -G demo
-VOLUME /tmp
-USER demo
-ARG EXTRACTED=/workspace/app/target/extracted
-WORKDIR application
-COPY --from=build ${EXTRACTED}/dependencies/ ./
-COPY --from=build ${EXTRACTED}/spring-boot-loader/ ./
-COPY --from=build ${EXTRACTED}/snapshot-dependencies/ ./
-COPY --from=build ${EXTRACTED}/application/ ./
-ENTRYPOINT ["java","-noverify","-XX:TieredStopAtLevel=1","-Dspring.main.lazy-initialization=true","org.springframework.boot.loader.launch.JarLauncher"]
+
+WORKDIR /app
+
+# Copy the jar only (assuming target/*.jar is your built app)
+COPY --from=build /app/target/*.jar app.jar
+
+# Optional: Add non-root user (for better security)
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Expose app port
+EXPOSE 8080
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
