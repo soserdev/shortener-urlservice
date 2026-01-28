@@ -3,8 +3,14 @@ package dev.smo.shortener.urlservice.service;
 import dev.smo.shortener.urlservice.model.UrlData;
 import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.awt.print.Book;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -16,6 +22,16 @@ public class UrlServiceImpl implements UrlService {
     @Autowired
     public UrlServiceImpl(UrlRepository urlRepository) {
         this.urlRepository = urlRepository;
+    }
+
+    @Override
+    public Page<UrlData> getUrls(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(
+                pageNumber,
+                pageSize,
+                Sort.by(Sort.Direction.DESC, "created")
+        );
+        return urlRepository.findAll(pageable);
     }
 
     @Override
