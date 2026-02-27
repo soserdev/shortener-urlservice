@@ -4,9 +4,9 @@ import dev.smo.shortener.urlservice.TestcontainersConfiguration;
 import dev.smo.shortener.urlservice.model.UrlData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.data.mongodb.test.autoconfigure.DataMongoTest;
 import org.springframework.context.annotation.Import;
-import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

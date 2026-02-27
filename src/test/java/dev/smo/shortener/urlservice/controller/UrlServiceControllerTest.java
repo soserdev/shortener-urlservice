@@ -1,14 +1,14 @@
 package dev.smo.shortener.urlservice.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.smo.shortener.urlservice.model.UrlData;
 import dev.smo.shortener.urlservice.service.UrlService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UrlServiceController.class)
 class UrlServiceControllerTest {
 
-    @MockBean
+    @MockitoBean
     UrlService urlService;
 
     @Autowired
@@ -35,7 +35,7 @@ class UrlServiceControllerTest {
     ObjectMapper objectMapper;
 
     @Test
-    void get_ShouldReturnUrlData_WhenShortUrlExists() throws Exception {
+    void getExistingUrl() throws Exception {
         var now = LocalDateTime.of(2024,1,2,3,4,5);
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
@@ -61,7 +61,7 @@ class UrlServiceControllerTest {
     }
 
     @Test
-    void get_ShouldReturnNotFound_WhenShortUrlDoesNotExist() throws Exception {
+    void getNotExistingUrl() throws Exception {
         var shortUrl = "0abc";
         given(urlService.getLongUrl(any())).willReturn(Optional.empty());
         mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + shortUrl))
@@ -69,7 +69,7 @@ class UrlServiceControllerTest {
     }
 
     @Test
-    void post_ShouldCreateNewUrl_WhenUrlDataIsValid() throws Exception {
+    void createNewUrl() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
                 .shortUrl("short-url")
@@ -96,7 +96,7 @@ class UrlServiceControllerTest {
     }
 
     @Test
-    void put_ShouldUpdateUrlData_WhenUrlDataIsValid() throws Exception {
+    void updateExistingUrl() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
                 .shortUrl("short-url")
@@ -113,7 +113,7 @@ class UrlServiceControllerTest {
     }
 
     @Test
-    void put_ShouldThrowNotFound_WhenUrlWithIdNotExists() throws Exception {
+    void updateNotExistingUrlReturnsNotFound() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
                 .shortUrl("short-url")

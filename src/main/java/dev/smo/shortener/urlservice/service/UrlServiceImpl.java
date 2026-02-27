@@ -35,6 +35,7 @@ public class UrlServiceImpl implements UrlService {
         if (existing.isEmpty()) {
             return Optional.empty();
         }
+        // if url is updated create a new one `active` and keep the old with `inactive`
         var updated = new UrlData(id, shortUrl, longUrl, existing.get().getUserid(), existing.get().getCreated(), LocalDateTime.now());
         var saved = urlRepository.save(updated);
         return Optional.ofNullable(saved);
