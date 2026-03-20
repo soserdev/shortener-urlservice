@@ -18,6 +18,18 @@ This project is used by:
 
 - [shortener-backend](https://github.com/soserdev/shortener-backend)
 
+## NEW API
+
+Final clean new API:
+
+| Action          | Endpoint                         |
+| --------------- | -------------------------------- |
+| Create URL      | `POST /api/v1/urls`              |
+| Get by ID       | `GET /api/v1/urls/{id}`          |
+| Update          | `PUT /api/v1/urls/{id}`          |
+| Get by shortUrl | `GET /api/v1/urls/short/{short}` |
+| Get by user     | `GET /api/v1/urls?user=abc`      |
+
 ## Development
 
 The Urlservice uses MongoDB to store the ``UrlData`. We assume Docker Desktop is running in the background.
@@ -31,7 +43,7 @@ The Urlservice uses MongoDB to store the ``UrlData`. We assume Docker Desktop is
 Build the docker image:
 
 ```bash
-docker build  -t soserdev/shortener-urlservice:latest -t soserdev/shortener-urlservice:0.0.1 -f Dockerfile .
+docker build  -t soserdev/shortener-urlservice:0.0.7-SNAPSHOT -f Dockerfile .
 ```
 
 Start MongoDB using Docker:
@@ -60,23 +72,37 @@ mvn verify
 Create a short url:
 
 ```bash
-curl -s -H'Content-Type: application/json' -d'{"shortUrl": "7766","longUrl": "http://www.google.com", "userid": "007"}' http://localhost:30000/api/v1/urlservice
+curl -s -H'Content-Type: application/json' -d'{"shortUrl": "1fa","longUrl": "http://www.example.com", "user": "default"}' http://localhost:8080/api/v1/urls
 ```
 
 My result:
 
 ```bash
-{"id":"68d6b245dc237d658611c09e","shortUrl":"7765","longUrl":"http://www.google.com","userid":"007","created":"2025-09-26T15:33:25.772331379","updated":"2025-09-26T15:33:25.772686546"
+{"id":"68d6b245dc237d658611c09e","shortUrl":"1fa","longUrl":"http://www.example.com","user":"default","created":"2025-09-26T15:33:25.772331379","updated":"2025-09-26T15:33:25.772686546"
 ```
 
-Get the short url:
+Get the url by shorturl:
 
 ```bash
-curl -s http://localhost:30000/api/v1/urlservice/7765 | jq
+curl -s -v http://localhost:8080/api/v1/urls/short/1fa | jq
 {
   "id": "68d6b245dc237d658611c09e",
-  "shortUrl": "7765",
-  "longUrl": "http://www.google.com",
+  "shortUrl": "1fa",
+  "longUrl": "http://www.example.com",
+  "userid": "007",
+  "created": "2025-09-26T15:33:25.772",
+  "updated": "2025-09-26T15:33:25.772",
+}
+```
+
+Get url by id:
+
+```bash
+curl -s http://localhost:8080/api/v1/urls/68d6b245dc237d658611c09e | jq
+{
+  "id": "68d6b245dc237d658611c09e",
+  "shortUrl": "1fa",
+  "longUrl": "http://www.example.com",
   "userid": "007",
   "created": "2025-09-26T15:33:25.772",
   "updated": "2025-09-26T15:33:25.772",
@@ -86,7 +112,7 @@ curl -s http://localhost:30000/api/v1/urlservice/7765 | jq
 Update the url:
 
 ```bash
-curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "userid": "007"}' http://localhost:30000/api/v1/urlservice/68d6b245dc237d658611c09e | jq
+curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "user": "007"}' http://localhost:8080/api/v1/urls/68d6b245dc237d658611c09e | jq
 
 {
   "id": "68d6b245dc237d658611c09e",
@@ -96,6 +122,12 @@ curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url
   "created": "2025-09-26T15:33:25.772",
   "updated": "2025-09-26T15:39:16.125269583"
 }
+```
+
+Find all urls for a user `default`:
+
+```bash
+curl -s http://localhost:8080/api/v1/urls\?user\=default | jq
 ```
 
 ## Verify the result in MongDB
@@ -152,9 +184,9 @@ urlservice> db.urls.find()
 [
 {
 _id: ObjectId('666c1be6a17e5f571be9bbad'),
-shortUrl: '7765',
-longUrl: 'http://www.google.com',
-userid: '007',
+shortUrl: '1fa',
+longUrl: 'http://www.example.com',
+user: 'default',
 created: ISODate('2024-06-14T10:31:02.079Z'),
 updated: ISODate('2024-06-14T10:31:02.079Z'),
 _class: 'model.dev.smo.shortener.urlservice.UrlData'
@@ -165,13 +197,13 @@ _class: 'model.dev.smo.shortener.urlservice.UrlData'
 Find a specific document.
 
 ```bash
-urlservice> db.urls.find({shortUrl:'7765'})
+urlservice> db.urls.find({shortUrl:'1fa'})
 [
   {
     _id: ObjectId('666c1be6a17e5f571be9bbad'),
     shortUrl: '7765',
-    longUrl: 'http://www.google.com',
-    userid: '007',
+    longUrl: 'http://www.example.com',
+    user: 'default',
     created: ISODate('2024-06-14T10:31:02.079Z'),
     updated: ISODate('2024-06-14T10:31:02.079Z'),
     _class: 'model.dev.smo.shortener.urlservice.UrlData'

@@ -9,7 +9,9 @@ import org.testcontainers.mongodb.MongoDBContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest
+@SpringBootTest(properties = {
+		"mongock.enabled=false"
+})
 class UrlServiceApplicationTests {
 
 	@Autowired

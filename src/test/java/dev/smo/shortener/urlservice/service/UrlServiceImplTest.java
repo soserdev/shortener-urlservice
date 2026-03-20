@@ -32,47 +32,47 @@ class UrlServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        urlData = new UrlData("shortUrl", "http://longurl.com", "user123");
+        urlData = new UrlData("1fa", "http://example.com", "user123");
     }
 
     @Test
-    void getLongUrl_ShouldReturnUrlData_WhenShortUrlExists() {
-        when(urlRepository.findByShortUrl("shortUrl")).thenReturn(Optional.of(urlData));
+    void getShortUrlExists() {
+        when(urlRepository.findByShortUrl("1fa")).thenReturn(Optional.of(urlData));
 
-        Optional<UrlData> result = urlService.getLongUrl("shortUrl");
+        Optional<UrlData> result = urlService.getByShortUrl("1fa");
 
         assertTrue(result.isPresent());
-        assertEquals("http://longurl.com", result.get().getLongUrl());
-        verify(urlRepository, times(1)).findByShortUrl(eq("shortUrl"));
+        assertEquals("http://example.com", result.get().getLongUrl());
+        verify(urlRepository, times(1)).findByShortUrl(eq("1fa"));
         Mockito.verifyNoMoreInteractions(urlRepository);
 
     }
     @Test
-    void getLongUrl_ShouldReturnEmptyOptional_WhenShortUrlDoesNotExist() {
+    void getShortUrlNotExist() {
         when(urlRepository.findByShortUrl(any())).thenReturn(Optional.empty());
 
-        Optional<UrlData> result = urlService.getLongUrl("shortUrl");
+        Optional<UrlData> result = urlService.getByShortUrl("1fa");
 
         assertEquals(Optional.empty(), result);
-        verify(urlRepository, times(1)).findByShortUrl(eq("shortUrl"));
+        verify(urlRepository, times(1)).findByShortUrl(eq("1fa"));
         verifyNoMoreInteractions(urlRepository);
     }
 
     @Test
-    void saveUrl_ShouldSaveUrlData_WhenShortUrlIsUnique() {
+    void saveUrl() {
         when(urlRepository.save(any(UrlData.class))).thenReturn(urlData);
 
-        Optional<UrlData> result = urlService.saveUrl("shortUrl", "http://longurl.com", "user123");
+        Optional<UrlData> result = urlService.saveUrl("1fa", "http://example.com", "user123");
 
         assertTrue(result.isPresent());
-        assertEquals("shortUrl", result.get().getShortUrl());
-        assertEquals("http://longurl.com", result.get().getLongUrl());
+        assertEquals("1fa", result.get().getShortUrl());
+        assertEquals("http://example.com", result.get().getLongUrl());
         verify(urlRepository, times(1)).save(any(UrlData.class));
         verifyNoMoreInteractions(urlRepository);
     }
 
     @Test
-    void updateUrl_ShouldSaveUpdatedUrlData_WhenUrlDataExists() {
+    void updateUrlExists() {
         var id = UUID.randomUUID().toString();
         var now = LocalDateTime.now();
         var yesterday = now.minusDays(1);
@@ -93,7 +93,7 @@ class UrlServiceImplTest {
     }
 
     @Test
-    void updateUrl_ShouldReturnOptionalEmpty_WhenUrlDataNotExists() {
+    void updateUrlWhenUrlDataNotExists() {
         var id = UUID.randomUUID().toString();
 
         when(urlRepository.findById(id)).thenReturn(Optional.empty());

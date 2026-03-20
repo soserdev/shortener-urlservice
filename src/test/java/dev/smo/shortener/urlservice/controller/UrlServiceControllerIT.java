@@ -19,7 +19,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        "mongock.enabled=false"
+})
 @AutoConfigureTestRestTemplate
 class UrlServiceControllerIT {
 
@@ -33,13 +35,13 @@ class UrlServiceControllerIT {
     UrlRepository urlRepository;
 
     @Test
-    void shouldCreateNewUrl_WhenUrlIsValid() throws JSONException {
+    void createNewUrl() throws JSONException {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         var url = new JSONObject();
         url.put("shortUrl", "short-url-1");
         url.put("longUrl", "http://long-url-1/");
-        url.put("userid", "user-id");
+        url.put("user", "user-id");
 
         ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -47,7 +49,7 @@ class UrlServiceControllerIT {
         assertThat(response.getBody().getId()).isNotBlank();
         assertThat(response.getBody().getShortUrl()).isEqualTo("short-url-1");
         assertThat(response.getBody().getLongUrl()).isEqualTo("http://long-url-1/");
-        assertThat(response.getBody().getUserid()).isEqualTo("user-id");
+        assertThat(response.getBody().getUser()).isEqualTo("user-id");
         assertThat(response.getBody().getCreated()).isNotNull();
         assertThat(response.getBody().getUpdated()).isNotNull();
 
@@ -57,24 +59,24 @@ class UrlServiceControllerIT {
         assertThat(found.isPresent()).isTrue();
         assertThat(found.get().getShortUrl()).isEqualTo("short-url-1");
         assertThat(found.get().getLongUrl()).isEqualTo("http://long-url-1/");
-        assertThat(found.get().getUserid()).isEqualTo("user-id");
+        assertThat(found.get().getUser()).isEqualTo("user-id");
         assertThat(found.get().getCreated()).isNotNull();
         assertThat(found.get().getUpdated()).isNotNull();
     }
 
     @Test
-    void shouldNotCreateNewUrl_WhenUrlIsInvalid() throws JSONException {
+    void createNewUrlInvalid() throws JSONException {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         var url = new JSONObject();
         url.put("shortUrl", "");
 
-        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<>(url.toString(), headers), UrlData.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    void shouldUpdateUrl_WhenUrlIsValid() throws JSONException {
+    void updateUrl() throws JSONException {
         var existing = urlRepository.save(new UrlData("short-url-old", "long-url-old", "user-id"));
 
         var headers = new HttpHeaders();
@@ -83,15 +85,15 @@ class UrlServiceControllerIT {
         url.put("id", existing.getId());
         url.put("shortUrl", "short-url-new");
         url.put("longUrl", "http://long-url-new/");
-        url.put("userid", "user-id");
+        url.put("user", "user-id");
 
         var response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1 + "/" + existing.getId(), HttpMethod.PUT,
-                new HttpEntity<String>(url.toString(), headers), UrlData.class);
+                new HttpEntity<>(url.toString(), headers), UrlData.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getShortUrl()).isEqualTo("short-url-new");
         assertThat(response.getBody().getLongUrl()).isEqualTo("http://long-url-new/");
-        assertThat(response.getBody().getUserid()).isEqualTo("user-id");
+        assertThat(response.getBody().getUser()).isEqualTo("user-id");
 
         // check if url is stored in repository
         Optional<UrlData> found = urlRepository.findById(existing.getId());
@@ -99,7 +101,7 @@ class UrlServiceControllerIT {
         assertThat(found.isPresent()).isTrue();
         assertThat(found.get().getShortUrl()).isEqualTo("short-url-new");
         assertThat(found.get().getLongUrl()).isEqualTo("http://long-url-new/");
-        assertThat(found.get().getUserid()).isEqualTo("user-id");
+        assertThat(found.get().getUser()).isEqualTo("user-id");
     }
 
     @Test
@@ -111,9 +113,9 @@ class UrlServiceControllerIT {
         var url = new JSONObject();
         url.put("shortUrl", "short-url-2");
         url.put("longUrl", "http://long-url-2/");
-        url.put("userid", "user-id");
+        url.put("user", "user-id");
 
-        ResponseEntity<UrlData> unprocessable = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> unprocessable = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<>(url.toString(), headers), UrlData.class);
         assertThat(unprocessable.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
     }
 

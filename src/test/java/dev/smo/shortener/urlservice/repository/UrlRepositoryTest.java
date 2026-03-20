@@ -11,7 +11,9 @@ import org.testcontainers.mongodb.MongoDBContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Import(TestcontainersConfiguration.class)
-@DataMongoTest
+@DataMongoTest(properties = {
+        "mongock.enabled=false"
+})
 class UrlRepositoryTest {
 
     @Autowired
@@ -27,7 +29,7 @@ class UrlRepositoryTest {
     }
 
     @Test
-    void givenUrlExists_whenFindByShortUrl_thenGetUrl() {
+    void findByShortUrl() {
         var saved = repository.save(new UrlData("short-url", "long-url", "user-id"));
 
         var url = repository.findByShortUrl("short-url");
@@ -35,13 +37,13 @@ class UrlRepositoryTest {
         assertThat(url).isPresent();
         assertThat(url.get().getShortUrl()).isEqualTo("short-url");
         assertThat(url.get().getLongUrl()).isEqualTo("long-url");
-        assertThat(url.get().getUserid()).isEqualTo("user-id");
+        assertThat(url.get().getUser()).isEqualTo("user-id");
 
         repository.delete(saved);
     }
 
     @Test
-    void givenNonExistingUrl_whenFindByShortUrl_thenReturnNotPresent() {
+    void findByShortUrlNotExisting() {
         var url = repository.findByShortUrl("short-url-not-existing");
         assertThat(url).isNotNull();
         assertThat(url).isEmpty();

@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UrlData {
 
-    public UrlData(String shortUrl, String longUrl, String userid) {
-        this(null, shortUrl, longUrl, userid, LocalDateTime.now(), LocalDateTime.now());
+    public UrlData(String shortUrl, String longUrl, String user) {
+        this(null, shortUrl, longUrl, user, LocalDateTime.now(), LocalDateTime.now());
     }
 
     @Id
@@ -34,8 +34,8 @@ public class UrlData {
     @NotBlank(message = "longUrl is mandatory")
     private String longUrl;
 
-    @NotBlank(message = "userId is mandatory")
-    private String userid;
+    @NotBlank(message = "user is mandatory")
+    private String user;
 
     private LocalDateTime created;
     private LocalDateTime updated;
