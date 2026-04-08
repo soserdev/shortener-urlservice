@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(properties = {
 		"mongock.enabled=false"
 })
-class UrlServiceApplicationTests {
+class UrlServiceApplicationTestIT {
 
 	@Autowired
 	MongoDBContainer mongo;

@@ -1,6 +1,7 @@
 package dev.smo.shortener.urlservice.service;
 
 import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.model.UrlStatus;
 import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,17 +77,18 @@ class UrlServiceImplTest {
         var id = UUID.randomUUID().toString();
         var now = LocalDateTime.now();
         var yesterday = now.minusDays(1);
-        var existing = new UrlData(id, "shortUrl-old", "http://longurl-old.com", "user123", yesterday, yesterday);
-        var updated = new UrlData(id, "shortUrl", "http://longurl.com", "user123", yesterday, now);
+        var existing = new UrlData(id, "shortUrl-old", "http://longurl-old.com", "user123", UrlStatus.ACTIVE.toString(), yesterday, yesterday);
+        var updated = new UrlData(id, "shortUrl", "http://longurl.com", "user123", UrlStatus.INACTIVE.toString(), yesterday, now);
 
         when(urlRepository.findById(id)).thenReturn(Optional.of(existing));
         when(urlRepository.save(any(UrlData.class))).thenReturn(updated);
 
-        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com");
+        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
 
         assertTrue(result.isPresent());
         assertEquals("shortUrl", result.get().getShortUrl());
         assertEquals("http://longurl.com", result.get().getLongUrl());
+        assertEquals(UrlStatus.INACTIVE.toString(), result.get().getStatus());
         verify(urlRepository, times(1)).findById(any(String.class));
         verify(urlRepository, times(1)).save(any(UrlData.class));
         verifyNoMoreInteractions(urlRepository);
@@ -98,7 +100,7 @@ class UrlServiceImplTest {
 
         when(urlRepository.findById(id)).thenReturn(Optional.empty());
 
-        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com");
+        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
 
         assertTrue(result.isEmpty());
     }

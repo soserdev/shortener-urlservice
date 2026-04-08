@@ -67,7 +67,7 @@ public class UrlServiceController {
             @RequestBody @Valid UrlData url) {
 
         var updatedUrl = urlService
-                .updateUrl(id, url.getShortUrl(), url.getLongUrl())
+                .updateUrl(id, url.getShortUrl(), url.getLongUrl(), url.getStatus())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Resource with id: '" + id + "' not found!"));
 

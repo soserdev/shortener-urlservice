@@ -1,6 +1,7 @@
 package dev.smo.shortener.urlservice.controller;
 
 import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.model.UrlStatus;
 import dev.smo.shortener.urlservice.service.UrlService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,13 +105,14 @@ class UrlServiceControllerTest {
                 .shortUrl("short-url")
                 .longUrl("http://longurl.com/")
                 .user("user-id")
+                .status(UrlStatus.ACTIVE.toString())
                 .build();
-        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl())).willReturn(Optional.of(urlData));
+        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus())).willReturn(Optional.of(urlData));
         mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId()).contentType(MediaType.APPLICATION_JSON)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(urlData)))
                 .andExpect(status().isOk());
-        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl());
+        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus());
         verifyNoMoreInteractions(urlService);
     }
 
@@ -121,13 +123,14 @@ class UrlServiceControllerTest {
                 .shortUrl("short-url")
                 .longUrl("http://longurl.com/")
                 .user("user-id")
+                .status(UrlStatus.ACTIVE.toString())
                 .build();
-        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl())).willReturn(Optional.empty());
+        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus())).willReturn(Optional.empty());
         mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId()).contentType(MediaType.APPLICATION_JSON)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(urlData)))
                 .andExpect(status().isNotFound());
-        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl());
+        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus());
         verifyNoMoreInteractions(urlService);
     }
 }

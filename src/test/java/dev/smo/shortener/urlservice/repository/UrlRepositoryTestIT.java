@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataMongoTest(properties = {
         "mongock.enabled=false"
 })
-class UrlRepositoryTest {
+class UrlRepositoryTestIT {
 
     @Autowired
     MongoDBContainer mongo;

@@ -1,6 +1,7 @@
 package dev.smo.shortener.urlservice.service;
 
 import dev.smo.shortener.urlservice.model.UrlData;
+import dev.smo.shortener.urlservice.model.UrlStatus;
 import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,13 +47,14 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public Optional<UrlData> updateUrl(String id, String shortUrl, String longUrl) {
+    public Optional<UrlData> updateUrl(String id, String shortUrl, String longUrl, String status) {
         var existing = urlRepository.findById(id);
         if (existing.isEmpty()) {
             return Optional.empty();
         }
-        // if url is updated create a new one `active` and keep the old with `inactive`
-        var updated = new UrlData(id, shortUrl, longUrl, existing.get().getUser(), existing.get().getCreated(), LocalDateTime.now());
+
+        // TODO: maybe if url is updated then create a new status and keep the old with `deleted`?
+        var updated = new UrlData(id, shortUrl, longUrl, existing.get().getUser(), UrlStatus.fromString(status).toString(), existing.get().getCreated(), LocalDateTime.now());
         var saved = urlRepository.save(updated);
         return Optional.of(saved);
     }

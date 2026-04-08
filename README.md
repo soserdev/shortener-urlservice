@@ -32,7 +32,7 @@ Final clean new API:
 
 ## Development
 
-The Urlservice uses MongoDB to store the ``UrlData`. We assume Docker Desktop is running in the background.
+The Urlservice uses MongoDB to store the `UrlData`. We assume Docker Desktop is running in the background.
 
 - _Intellij_ uses the `compose.yml` to start MongoDB if you start the service 
 - `compose-express.yaml` starts mongo and mongo express
@@ -43,7 +43,7 @@ The Urlservice uses MongoDB to store the ``UrlData`. We assume Docker Desktop is
 Build the docker image:
 
 ```bash
-docker build  -t soserdev/shortener-urlservice:0.0.7-SNAPSHOT -f Dockerfile .
+docker build  -t soserdev/shortener-urlservice:0.1.1-SNAPSHOT -f Dockerfile .
 ```
 
 Start MongoDB using Docker:
@@ -78,7 +78,7 @@ curl -s -H'Content-Type: application/json' -d'{"shortUrl": "1fa","longUrl": "htt
 My result:
 
 ```bash
-{"id":"68d6b245dc237d658611c09e","shortUrl":"1fa","longUrl":"http://www.example.com","user":"default","created":"2025-09-26T15:33:25.772331379","updated":"2025-09-26T15:33:25.772686546"
+{"created":"2026-04-08T12:12:49.818459","id":"69d62a21cef4d076ba7a9dbd","longUrl":"http://www.example.com","shortUrl":"1fa","status":"active","updated":"2026-04-08T12:12:49.818473","user":"default"}
 ```
 
 Get the url by shorturl:
@@ -86,41 +86,43 @@ Get the url by shorturl:
 ```bash
 curl -s -v http://localhost:8080/api/v1/urls/short/1fa | jq
 {
-  "id": "68d6b245dc237d658611c09e",
-  "shortUrl": "1fa",
+  "created": "2026-04-08T12:12:49.818",
+  "id": "69d62a21cef4d076ba7a9dbd",
   "longUrl": "http://www.example.com",
-  "userid": "007",
-  "created": "2025-09-26T15:33:25.772",
-  "updated": "2025-09-26T15:33:25.772",
+  "shortUrl": "1fa",
+  "status": "active",
+  "updated": "2026-04-08T12:12:49.818",
+  "user": "default"
 }
 ```
 
 Get url by id:
 
 ```bash
-curl -s http://localhost:8080/api/v1/urls/68d6b245dc237d658611c09e | jq
+curl -s http://localhost:8080/api/v1/urls/69d62a21cef4d076ba7a9dbd | jq
 {
-  "id": "68d6b245dc237d658611c09e",
-  "shortUrl": "1fa",
+  "created": "2026-04-08T12:12:49.818",
+  "id": "69d62a21cef4d076ba7a9dbd",
   "longUrl": "http://www.example.com",
-  "userid": "007",
-  "created": "2025-09-26T15:33:25.772",
-  "updated": "2025-09-26T15:33:25.772",
+  "shortUrl": "1fa",
+  "status": "active",
+  "updated": "2026-04-08T12:12:49.818",
+  "user": "default"
 }
 ```
 
-Update the url:
+Update the url - _'user' is not updated!_:
 
 ```bash
-curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "user": "007"}' http://localhost:8080/api/v1/urls/68d6b245dc237d658611c09e | jq
-
+curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "user": "007", "status": "inactive"}' http://localhost:8080/api/v1/urls/69d62a21cef4d076ba7a9dbd | jq
 {
-  "id": "68d6b245dc237d658611c09e",
-  "shortUrl": "new-short-url",
+  "created": "2026-04-08T12:12:49.818",
+  "id": "69d62a21cef4d076ba7a9dbd",
   "longUrl": "http://new-long-url",
-  "userid": "007",
-  "created": "2025-09-26T15:33:25.772",
-  "updated": "2025-09-26T15:39:16.125269583"
+  "shortUrl": "new-short-url",
+  "status": "inactive",
+  "updated": "2026-04-08T12:17:49.124226",
+  "user": "default"
 }
 ```
 
