@@ -9,15 +9,15 @@ public interface UrlService {
 
     Optional<UrlData> getById(String id);
 
-    Optional<UrlData> getByShortUrl(final String shortUrl);
+    Optional<UrlData> getByDomainAndShortUrl(String domain, String shortUrl);
 
     List<UrlData> getAllUrls();
 
     List<UrlData> getUrlsByUser(String user);
 
-    Optional<UrlData> saveUrl(String shortUrl, String longUrl, String userid);
+    List<UrlData> getUrlsByDomain(String domain);
 
-    Optional<UrlData> updateUrl(String id, String shortUrl, String longUrl, String status);
+    Optional<UrlData> saveUrl(String domain, String shortUrl, String longUrl, String userId);
 
-
+    Optional<UrlData> updateUrl(String id, String domain, String shortUrl, String longUrl, String status);
 }

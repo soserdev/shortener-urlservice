@@ -40,34 +40,43 @@ class UrlServiceControllerTest {
     @Test
     void getUrlByShort() throws Exception {
         var now = LocalDateTime.of(2024,1,2,3,4,5);
+
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
+                .domain("mydomain.com")
                 .shortUrl("0abcd")
                 .longUrl("http://abc.io/")
                 .user("user-id")
                 .created(now)
                 .updated(now)
                 .build();
-        given(urlService.getByShortUrl(any())).willReturn(Optional.of(urlData));
 
-        mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/short/" + urlData.getShortUrl()))
+        given(urlService.getByDomainAndShortUrl(any(), any()))
+                .willReturn(Optional.of(urlData));
+
+        mockMvc.perform(get(UrlServiceController.SERVICE_API_V1
+                        + "/short/" + urlData.getDomain()
+                        + "/" + urlData.getShortUrl()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(urlData.getId())))
+                .andExpect(jsonPath("$.domain", is(urlData.getDomain())))
                 .andExpect(jsonPath("$.shortUrl", is(urlData.getShortUrl())))
                 .andExpect(jsonPath("$.longUrl", is(urlData.getLongUrl())))
                 .andExpect(jsonPath("$.user", is(urlData.getUser())))
                 .andExpect(jsonPath("$.created", is("2024-01-02T03:04:05")))
                 .andExpect(jsonPath("$.updated", is("2024-01-02T03:04:05")));
-        // Assure we call our service with the right parameter
-        then(urlService).should().getByShortUrl(urlData.getShortUrl());
+
+        then(urlService).should()
+                .getByDomainAndShortUrl(urlData.getDomain(), urlData.getShortUrl());
     }
 
     @Test
     void getUrlNotExisting() throws Exception {
-        var shortUrl = "0abc";
-        given(urlService.getByShortUrl(any())).willReturn(Optional.empty());
-        mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/" + shortUrl))
+        given(urlService.getByDomainAndShortUrl(any(), any()))
+                .willReturn(Optional.empty());
+
+        mockMvc.perform(get(UrlServiceController.SERVICE_API_V1 + "/short/mydomain.com/0abc"))
                 .andExpect(status().isNotFound());
     }
 
@@ -75,17 +84,23 @@ class UrlServiceControllerTest {
     void createNewUrl() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
+                .domain("mydomain.com")
                 .shortUrl("short-url")
                 .longUrl("http://longurl.com/")
                 .user("user-id")
                 .build();
-        var jsonData = objectMapper.writeValueAsString(UrlData.builder()
+
+        var jsonData = objectMapper.writeValueAsString(
+                UrlData.builder()
+                        .domain(urlData.getDomain())
                         .shortUrl(urlData.getShortUrl())
                         .longUrl(urlData.getLongUrl())
                         .user(urlData.getUser())
-                        .build());
+                        .build()
+        );
 
-        given(urlService.saveUrl(any(), any(), any())).willReturn(Optional.of(urlData));
+        given(urlService.saveUrl(any(), any(), any(), any()))
+                .willReturn(Optional.of(urlData));
 
         mockMvc.perform(post(UrlServiceController.SERVICE_API_V1)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,25 +109,47 @@ class UrlServiceControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(urlData.getId())));
 
-        // Assure @RequestBody IS set...
-        then(urlService).should().saveUrl(eq(urlData.getShortUrl()), eq(urlData.getLongUrl()), eq(urlData.getUser()));
+        then(urlService).should()
+                .saveUrl(
+                        eq(urlData.getDomain()),
+                        eq(urlData.getShortUrl()),
+                        eq(urlData.getLongUrl()),
+                        eq(urlData.getUser())
+                );
     }
 
     @Test
     void updateExistingUrl() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
+                .domain("mydomain.com")
                 .shortUrl("short-url")
                 .longUrl("http://longurl.com/")
                 .user("user-id")
                 .status(UrlStatus.ACTIVE.toString())
                 .build();
-        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus())).willReturn(Optional.of(urlData));
-        mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId()).contentType(MediaType.APPLICATION_JSON)
-                        .contentType("application/json")
+
+        given(urlService.updateUrl(
+                urlData.getId(),
+                urlData.getDomain(),
+                urlData.getShortUrl(),
+                urlData.getLongUrl(),
+                urlData.getStatus()
+        )).willReturn(Optional.of(urlData));
+
+        mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(urlData)))
                 .andExpect(status().isOk());
-        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus());
+
+        verify(urlService, times(1)).updateUrl(
+                urlData.getId(),
+                urlData.getDomain(),
+                urlData.getShortUrl(),
+                urlData.getLongUrl(),
+                urlData.getStatus()
+        );
+
         verifyNoMoreInteractions(urlService);
     }
 
@@ -120,17 +157,34 @@ class UrlServiceControllerTest {
     void updateNotExistingUrlReturnsNotFound() throws Exception {
         var urlData = UrlData.builder()
                 .id(UUID.randomUUID().toString())
+                .domain("mydomain.com")
                 .shortUrl("short-url")
                 .longUrl("http://longurl.com/")
                 .user("user-id")
                 .status(UrlStatus.ACTIVE.toString())
                 .build();
-        given(urlService.updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus())).willReturn(Optional.empty());
-        mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId()).contentType(MediaType.APPLICATION_JSON)
-                        .contentType("application/json")
+
+        given(urlService.updateUrl(
+                urlData.getId(),
+                urlData.getDomain(),
+                urlData.getShortUrl(),
+                urlData.getLongUrl(),
+                urlData.getStatus()
+        )).willReturn(Optional.empty());
+
+        mockMvc.perform(put(UrlServiceController.SERVICE_API_V1 + "/" + urlData.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(urlData)))
                 .andExpect(status().isNotFound());
-        verify(urlService, times(1)).updateUrl(urlData.getId(), urlData.getShortUrl(), urlData.getLongUrl(), urlData.getStatus());
+
+        verify(urlService, times(1)).updateUrl(
+                urlData.getId(),
+                urlData.getDomain(),
+                urlData.getShortUrl(),
+                urlData.getLongUrl(),
+                urlData.getStatus()
+        );
+
         verifyNoMoreInteractions(urlService);
     }
 }

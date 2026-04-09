@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Slf4j
-@RestController()
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/urls")
 public class UrlServiceController {
@@ -33,45 +33,64 @@ public class UrlServiceController {
         return ResponseEntity.ok(url);
     }
 
+    @GetMapping("/short/{domain}/{shortUrl}")
+    public ResponseEntity<UrlData> getByShortUrl(
+            @PathVariable String domain,
+            @PathVariable String shortUrl) {
 
-    @GetMapping("/short/{shortUrl}")
-    public ResponseEntity<UrlData> getByShortUrl(@PathVariable String shortUrl) {
-        var url = urlService.getByShortUrl(shortUrl)
+        var url = urlService.getByDomainAndShortUrl(domain, shortUrl)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Resource for shortUrl: '" + shortUrl + "' not found!"));
+                        new ResourceNotFoundException(
+                                "Resource for domain: '" + domain + "' and shortUrl: '" + shortUrl + "' not found!"
+                        ));
 
         return ResponseEntity.ok(url);
     }
 
-    @GetMapping("")
-    public ResponseEntity<List<UrlData>> getUrlsByUser(@RequestParam(required = false) String user) {
+    @GetMapping
+    public ResponseEntity<List<UrlData>> getUrls(
+            @RequestParam(required = false) String user,
+            @RequestParam(required = false) String domain) {
+
         if (user != null) {
             return ResponseEntity.ok(urlService.getUrlsByUser(user));
+        }
+
+        if (domain != null) {
+            return ResponseEntity.ok(urlService.getUrlsByDomain(domain));
         }
 
         return ResponseEntity.ok(urlService.getAllUrls());
     }
 
-
     @PostMapping
     public ResponseEntity<UrlData> create(@RequestBody @Validated UrlData url) {
+
         var savedUrl = urlService
-                .saveUrl(url.getShortUrl(), url.getLongUrl(), url.getUser())
-                .orElseThrow(() -> new UrlServiceException("Url not created!"));
+                .saveUrl(url.getDomain(), url.getShortUrl(), url.getLongUrl(), url.getUser())
+                .orElseThrow(() -> new UrlServiceException("Url not created (possibly duplicate)!"));
 
         return new ResponseEntity<>(savedUrl, HttpStatus.CREATED);
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<UrlData> update(
             @PathVariable String id,
             @RequestBody @Valid UrlData url) {
 
         var updatedUrl = urlService
-                .updateUrl(id, url.getShortUrl(), url.getLongUrl(), url.getStatus())
+                .updateUrl(
+                        id,
+                        url.getDomain(),
+                        url.getShortUrl(),
+                        url.getLongUrl(),
+                        url.getStatus()
+                )
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Resource with id: '" + id + "' not found!"));
+                        new ResourceNotFoundException(
+                                "Resource with id: '" + id + "' not found or conflict occurred!"
+                        ));
 
         return ResponseEntity.ok(updatedUrl);
     }
-
 }

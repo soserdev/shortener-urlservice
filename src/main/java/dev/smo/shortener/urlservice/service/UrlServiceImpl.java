@@ -4,6 +4,7 @@ import dev.smo.shortener.urlservice.model.UrlData;
 import dev.smo.shortener.urlservice.model.UrlStatus;
 import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,8 +27,8 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public Optional<UrlData> getByShortUrl(String shortUrl) {
-        return urlRepository.findByShortUrl(shortUrl);
+    public Optional<UrlData> getByDomainAndShortUrl(String domain, String shortUrl) {
+        return urlRepository.findByDomainAndShortUrl(normalizeDomain(domain), shortUrl);
     }
 
     @Override
@@ -41,22 +42,67 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public Optional<UrlData> saveUrl(String shortUrl, String longUrl, String userid) {
-        var urlToSave = new UrlData(shortUrl, longUrl, userid);
-        return Optional.of(urlRepository.save(urlToSave));
+    public List<UrlData> getUrlsByDomain(String domain) {
+        return urlRepository.findByDomain(normalizeDomain(domain));
     }
 
     @Override
-    public Optional<UrlData> updateUrl(String id, String shortUrl, String longUrl, String status) {
-        var existing = urlRepository.findById(id);
-        if (existing.isEmpty()) {
+    public Optional<UrlData> saveUrl(String domain, String shortUrl, String longUrl, String userId) {
+        var normalizedDomain = normalizeDomain(domain);
+
+        var urlToSave = new UrlData(
+                normalizedDomain,
+                shortUrl,
+                longUrl,
+                userId
+        );
+
+        try {
+            return Optional.of(urlRepository.save(urlToSave));
+        } catch (DuplicateKeyException e) {
+            // (domain, shortUrl) already exists
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<UrlData> updateUrl(String id, String domain, String shortUrl, String longUrl, String status) {
+        var existingOpt = urlRepository.findById(id);
+
+        if (existingOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        // TODO: maybe if url is updated then create a new status and keep the old with `deleted`?
-        var updated = new UrlData(id, shortUrl, longUrl, existing.get().getUser(), UrlStatus.fromString(status).toString(), existing.get().getCreated(), LocalDateTime.now());
-        var saved = urlRepository.save(updated);
-        return Optional.of(saved);
+        var existing = existingOpt.get();
+        var normalizedDomain = normalizeDomain(domain);
+
+        var updated = new UrlData(
+                id,
+                normalizedDomain,
+                shortUrl,
+                longUrl,
+                existing.getUser(),
+                UrlStatus.fromString(status).toString(),
+                existing.getCreated(),
+                LocalDateTime.now()
+        );
+
+        try {
+            return Optional.of(urlRepository.save(updated));
+        } catch (DuplicateKeyException e) {
+            // conflict with existing (domain + shortUrl)
+            return Optional.empty();
+        }
     }
 
+    // --- helper ---
+
+    private String normalizeDomain(String domain) {
+        if (domain == null) return null;
+
+        return domain.toLowerCase()
+                .replace("http://", "")
+                .replace("https://", "")
+                .replaceAll("/+$", "");
+    }
 }

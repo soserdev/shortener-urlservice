@@ -31,31 +31,34 @@ class UrlServiceImplTest {
 
     private UrlData urlData;
 
+    private final String DOMAIN = "mydomain.com";
+
     @BeforeEach
     void setUp() {
-        urlData = new UrlData("1fa", "http://example.com", "user123");
+        urlData = new UrlData(DOMAIN, "1fa", "http://example.com", "user123");
     }
 
     @Test
-    void getShortUrlExists() {
-        when(urlRepository.findByShortUrl("1fa")).thenReturn(Optional.of(urlData));
+    void getByDomainAndShortUrlExists() {
+        when(urlRepository.findByDomainAndShortUrl(DOMAIN, "1fa")).thenReturn(Optional.of(urlData));
 
-        Optional<UrlData> result = urlService.getByShortUrl("1fa");
+        Optional<UrlData> result = urlService.getByDomainAndShortUrl(DOMAIN, "1fa");
 
         assertTrue(result.isPresent());
         assertEquals("http://example.com", result.get().getLongUrl());
-        verify(urlRepository, times(1)).findByShortUrl(eq("1fa"));
+        assertEquals(DOMAIN, result.get().getDomain());
+        verify(urlRepository, times(1)).findByDomainAndShortUrl(eq(DOMAIN), eq("1fa"));
         Mockito.verifyNoMoreInteractions(urlRepository);
-
     }
-    @Test
-    void getShortUrlNotExist() {
-        when(urlRepository.findByShortUrl(any())).thenReturn(Optional.empty());
 
-        Optional<UrlData> result = urlService.getByShortUrl("1fa");
+    @Test
+    void getByDomainAndShortUrlNotExist() {
+        when(urlRepository.findByDomainAndShortUrl(any(), any())).thenReturn(Optional.empty());
+
+        Optional<UrlData> result = urlService.getByDomainAndShortUrl(DOMAIN, "1fa");
 
         assertEquals(Optional.empty(), result);
-        verify(urlRepository, times(1)).findByShortUrl(eq("1fa"));
+        verify(urlRepository, times(1)).findByDomainAndShortUrl(eq(DOMAIN), eq("1fa"));
         verifyNoMoreInteractions(urlRepository);
     }
 
@@ -63,11 +66,12 @@ class UrlServiceImplTest {
     void saveUrl() {
         when(urlRepository.save(any(UrlData.class))).thenReturn(urlData);
 
-        Optional<UrlData> result = urlService.saveUrl("1fa", "http://example.com", "user123");
+        Optional<UrlData> result = urlService.saveUrl(DOMAIN, "1fa", "http://example.com", "user123");
 
         assertTrue(result.isPresent());
         assertEquals("1fa", result.get().getShortUrl());
         assertEquals("http://example.com", result.get().getLongUrl());
+        assertEquals(DOMAIN, result.get().getDomain());
         verify(urlRepository, times(1)).save(any(UrlData.class));
         verifyNoMoreInteractions(urlRepository);
     }
@@ -77,18 +81,19 @@ class UrlServiceImplTest {
         var id = UUID.randomUUID().toString();
         var now = LocalDateTime.now();
         var yesterday = now.minusDays(1);
-        var existing = new UrlData(id, "shortUrl-old", "http://longurl-old.com", "user123", UrlStatus.ACTIVE.toString(), yesterday, yesterday);
-        var updated = new UrlData(id, "shortUrl", "http://longurl.com", "user123", UrlStatus.INACTIVE.toString(), yesterday, now);
+        var existing = new UrlData(id, DOMAIN, "shortUrl-old", "http://longurl-old.com", "user123", UrlStatus.ACTIVE.toString(), yesterday, yesterday);
+        var updated = new UrlData(id, DOMAIN, "shortUrl", "http://longurl.com", "user123", UrlStatus.INACTIVE.toString(), yesterday, now);
 
         when(urlRepository.findById(id)).thenReturn(Optional.of(existing));
         when(urlRepository.save(any(UrlData.class))).thenReturn(updated);
 
-        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
+        Optional<UrlData> result = urlService.updateUrl(id, DOMAIN, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
 
         assertTrue(result.isPresent());
         assertEquals("shortUrl", result.get().getShortUrl());
         assertEquals("http://longurl.com", result.get().getLongUrl());
         assertEquals(UrlStatus.INACTIVE.toString(), result.get().getStatus());
+        assertEquals(DOMAIN, result.get().getDomain());
         verify(urlRepository, times(1)).findById(any(String.class));
         verify(urlRepository, times(1)).save(any(UrlData.class));
         verifyNoMoreInteractions(urlRepository);
@@ -100,7 +105,7 @@ class UrlServiceImplTest {
 
         when(urlRepository.findById(id)).thenReturn(Optional.empty());
 
-        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
+        Optional<UrlData> result = urlService.updateUrl(id, DOMAIN, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
 
         assertTrue(result.isEmpty());
     }

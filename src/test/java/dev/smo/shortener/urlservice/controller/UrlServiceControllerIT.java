@@ -19,7 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "mongock.enabled=false"
 })
 @AutoConfigureTestRestTemplate
@@ -38,25 +38,34 @@ class UrlServiceControllerIT {
     void createNewUrl() throws JSONException {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
+        url.put("domain", "mydomain.com");
         url.put("shortUrl", "short-url-1");
         url.put("longUrl", "http://long-url-1/");
         url.put("user", "user-id");
 
-        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> response = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1,
+                HttpMethod.POST,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotBlank();
+        assertThat(response.getBody().getDomain()).isEqualTo("mydomain.com");
         assertThat(response.getBody().getShortUrl()).isEqualTo("short-url-1");
         assertThat(response.getBody().getLongUrl()).isEqualTo("http://long-url-1/");
         assertThat(response.getBody().getUser()).isEqualTo("user-id");
         assertThat(response.getBody().getCreated()).isNotNull();
         assertThat(response.getBody().getUpdated()).isNotNull();
 
-        // check if url is stored in repository
+        // Verify stored in repository
         Optional<UrlData> found = urlRepository.findById(response.getBody().getId());
-        assertThat(found).isNotNull();
-        assertThat(found.isPresent()).isTrue();
+        assertThat(found).isPresent();
+        assertThat(found.get().getDomain()).isEqualTo("mydomain.com");
         assertThat(found.get().getShortUrl()).isEqualTo("short-url-1");
         assertThat(found.get().getLongUrl()).isEqualTo("http://long-url-1/");
         assertThat(found.get().getUser()).isEqualTo("user-id");
@@ -68,37 +77,54 @@ class UrlServiceControllerIT {
     void createNewUrlInvalid() throws JSONException {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
+        url.put("domain", "mydomain.com");
         url.put("shortUrl", "");
 
-        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> response = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1,
+                HttpMethod.POST,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
     void updateUrl() throws JSONException {
-        var existing = urlRepository.save(new UrlData("short-url-old", "long-url-old", "user-id"));
+        var existing = urlRepository.save(new UrlData(
+                "mydomain.com", "short-url-old", "http://long-url-old/", "user-id"
+        ));
 
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
         url.put("id", existing.getId());
+        url.put("domain", "mydomain.com");
         url.put("shortUrl", "short-url-new");
         url.put("longUrl", "http://long-url-new/");
         url.put("user", "user-id");
 
-        var response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1 + "/" + existing.getId(), HttpMethod.PUT,
-                new HttpEntity<>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> response = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1 + "/" + existing.getId(),
+                HttpMethod.PUT,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getDomain()).isEqualTo("mydomain.com");
         assertThat(response.getBody().getShortUrl()).isEqualTo("short-url-new");
         assertThat(response.getBody().getLongUrl()).isEqualTo("http://long-url-new/");
         assertThat(response.getBody().getUser()).isEqualTo("user-id");
 
-        // check if url is stored in repository
         Optional<UrlData> found = urlRepository.findById(existing.getId());
-        assertThat(found).isNotNull();
-        assertThat(found.isPresent()).isTrue();
+        assertThat(found).isPresent();
+        assertThat(found.get().getDomain()).isEqualTo("mydomain.com");
         assertThat(found.get().getShortUrl()).isEqualTo("short-url-new");
         assertThat(found.get().getLongUrl()).isEqualTo("http://long-url-new/");
         assertThat(found.get().getUser()).isEqualTo("user-id");
@@ -106,17 +132,24 @@ class UrlServiceControllerIT {
 
     @Test
     void shouldReturnHttpStatusUnprocessableEntity_WhenShortUrlIsNotUnique() throws JSONException {
-        urlRepository.save(new UrlData("short-url-2", "long-url-2", "user-id"));
+        urlRepository.save(new UrlData("mydomain.com", "short-url-2", "http://long-url-2/", "user-id"));
 
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
+        url.put("domain", "mydomain.com");
         url.put("shortUrl", "short-url-2");
         url.put("longUrl", "http://long-url-2/");
         url.put("user", "user-id");
 
-        ResponseEntity<UrlData> unprocessable = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> unprocessable = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1,
+                HttpMethod.POST,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
         assertThat(unprocessable.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
     }
-
 }
