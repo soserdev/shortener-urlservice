@@ -23,11 +23,9 @@ public class UrlData {
     @Id
     private String id;
 
-    @NotBlank(message = "shortUrl is mandatory")
     @Indexed(unique = true)
     private String shortUrl;
 
-    @NotBlank(message = "longUrl is mandatory")
     private String longUrl;
 
     @NotBlank(message = "user is mandatory")

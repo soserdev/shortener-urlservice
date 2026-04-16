@@ -43,7 +43,7 @@ The Urlservice uses MongoDB to store the `UrlData`. We assume Docker Desktop is 
 Build the docker image:
 
 ```bash
-docker build  -t soserdev/shortener-urlservice:0.1.1-SNAPSHOT -f Dockerfile .
+docker build  -t soserdev/shortener-urlservice:0.1.3-SNAPSHOT -f Dockerfile .
 ```
 
 Start MongoDB using Docker:
