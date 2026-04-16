@@ -48,14 +48,28 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     public Optional<UrlData> updateUrl(String id, String shortUrl, String longUrl, String status) {
-        var existing = urlRepository.findById(id);
-        if (existing.isEmpty()) {
+        var existingOpt = urlRepository.findById(id);
+        if (existingOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        // TODO: maybe if url is updated then create a new status and keep the old with `deleted`?
-        var updated = new UrlData(id, shortUrl, longUrl, existing.get().getUser(), UrlStatus.fromString(status).toString(), existing.get().getCreated(), LocalDateTime.now());
-        var saved = urlRepository.save(updated);
+        var existing = existingOpt.get();
+
+        if (shortUrl != null && !shortUrl.isEmpty()) {
+            existing.setShortUrl(shortUrl);
+        }
+
+        if (longUrl != null && !longUrl.isEmpty()) {
+            existing.setLongUrl(longUrl);
+        }
+
+        if (status != null && !status.isEmpty()) {
+            existing.setStatus(UrlStatus.fromString(status).toString());
+        }
+
+        existing.setUpdated(LocalDateTime.now());
+
+        var saved = urlRepository.save(existing);
         return Optional.of(saved);
     }
 
