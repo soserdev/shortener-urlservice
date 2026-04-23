@@ -2,57 +2,133 @@
 
 ## About
 
-This is a simple _Shortener Urlservice_ that stores `UrlData` for an `UrlShortener`.
+This is a simple *Shortener Urlservice* that stores `UrlData` for an `UrlShortener`.
 
 This project uses:
 
-- Java
-- Spring Boot
-- MongoDB
+* Java
+* Spring Boot
+* MongoDB
 
-**Github Actions** are used to build the project and run the integration tests. Additionally they create a **Docker Image** both for **Linux** and **MacOS**, and push the image to **Docker Hub** - see [soserdev/shortener-urlservice](https://hub.docker.com/repository/docker/soserdev/shortener-urlservice/general).
+**GitHub Actions** are used to build the project and run integration tests. Additionally, they create a **Docker Image** for **Linux** and **MacOS**, and push it to Docker Hub:
+👉 [https://hub.docker.com/repository/docker/soserdev/shortener-urlservice/general](https://hub.docker.com/repository/docker/soserdev/shortener-urlservice/general)
 
-Furthermore there are **Integration tests** for the `UrlServiceController` that use [Testcontainers](https://testcontainers.com).
+Integration tests for the `UrlServiceController` are implemented using **Testcontainers**:
+👉 [https://testcontainers.com](https://testcontainers.com)
 
 This project is used by:
 
-- [shortener-backend](https://github.com/soserdev/shortener-backend)
+* [https://github.com/soserdev/shortener-backend](https://github.com/soserdev/shortener-backend)
 
-## NEW API
 
-Final clean new API:
+## REST API
 
-| Action          | Endpoint                         |
-| --------------- | -------------------------------- |
-| Create URL      | `POST /api/v1/urls`              |
-| Get by ID       | `GET /api/v1/urls/{id}`          |
-| Update          | `PUT /api/v1/urls/{id}`          |
-| Get by shortUrl | `GET /api/v1/urls/short/{short}` |
-| Get by user     | `GET /api/v1/urls?user=abc`      |
+### Base URL
 
-## Development
-
-The Urlservice uses MongoDB to store the `UrlData`. We assume Docker Desktop is running in the background.
-
-- _Intellij_ uses the `compose.yml` to start MongoDB if you start the service 
-- `compose-express.yaml` starts mongo and mongo express
-- `compose-urlservice.yaml` starts the Urlservice and mongo
-
-## Usage Docker
-
-Build the docker image:
-
-```bash
-docker build  -t soserdev/shortener-urlservice:0.1.3-SNAPSHOT -f Dockerfile .
+```
+/api/v1/urls
 ```
 
-Start MongoDB using Docker:
+### Endpoints
+
+| Action          | Endpoint                                   |
+| --------------- | ------------------------------------------ |
+| Create URL      | `POST /api/v1/urls`                        |
+| Get by ID       | `GET /api/v1/urls/{id}`                    |
+| Update          | `PUT /api/v1/urls/{id}`                    |
+| Get by shortUrl | `GET /api/v1/urls/short/{short}`           |
+| Get all (paged) | `GET /api/v1/urls?page=0&size=10`          |
+| Get by user     | `GET /api/v1/urls?user=abc&page=0&size=10` |
+
+
+## Pagination & Sorting
+
+The API now supports pagination and sorting.
+
+### Query Parameters
+
+| Parameter   | Description                 | Default   |
+| ----------- | --------------------------- | --------- |
+| `page`      | Page number (0-based)       | `0`       |
+| `size`      | Number of elements per page | `10`      |
+| `sortBy`    | Field to sort by            | `created` |
+| `direction` | `asc` or `desc`             | `desc`    |
+
+
+### Example Requests
+
+#### Get all URLs (paginated)
+
+```bash
+curl -s "http://localhost:8080/api/v1/urls?page=0&size=5" | jq
+```
+
+#### Get URLs by user (paginated)
+
+```bash
+curl -s "http://localhost:8080/api/v1/urls?user=default&page=0&size=5" | jq
+```
+
+#### With sorting
+
+```bash
+curl -s "http://localhost:8080/api/v1/urls?sortBy=updated&direction=asc" | jq
+```
+
+
+### Example Response (Paginated)
+
+```json
+{
+  "content": [
+    {
+      "id": "69d62a21cef4d076ba7a9dbd",
+      "shortUrl": "1fa",
+      "longUrl": "http://www.example.com",
+      "user": "default",
+      "status": "active",
+      "created": "2026-04-08T12:12:49.818",
+      "updated": "2026-04-08T12:12:49.818"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 5
+  },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "first": true
+}
+```
+
+
+## Development  🛠
+
+The Urlservice uses MongoDB to store `UrlData`.
+
+We assume Docker Desktop is running.
+
+* IntelliJ uses `compose.yml` to start MongoDB automatically
+* `compose-express.yaml` → MongoDB + Mongo Express
+* `compose-urlservice.yaml` → Full stack (API + MongoDB)
+
+
+## Docker Usage  🐳
+
+Build the image:
+
+```bash
+docker build -t soserdev/shortener-urlservice:0.1.3-SNAPSHOT -f Dockerfile .
+```
+
+Start MongoDB:
 
 ```bash
 docker compose -f compose.yml up -d
 ```
 
-Shut it down:
+Stop:
 
 ```bash
 docker compose -f compose.yml down
@@ -67,9 +143,9 @@ mvn verify
 ```
 
 
-## UrlService API
+## UrlService API Examples
 
-Create a short url:
+### Create a short URL
 
 ```bash
 curl -s -H'Content-Type: application/json' -d'{"shortUrl": "1fa","longUrl": "http://www.example.com", "user": "default"}' http://localhost:8080/api/v1/urls
@@ -81,22 +157,23 @@ My result:
 {"created":"2026-04-08T12:12:49.818459","id":"69d62a21cef4d076ba7a9dbd","longUrl":"http://www.example.com","shortUrl":"1fa","status":"active","updated":"2026-04-08T12:12:49.818473","user":"default"}
 ```
 
-Get the url by shorturl:
+
+
+### Get by short URL
 
 ```bash
-curl -s -v http://localhost:8080/api/v1/urls/short/1fa | jq
-{
-  "created": "2026-04-08T12:12:49.818",
-  "id": "69d62a21cef4d076ba7a9dbd",
-  "longUrl": "http://www.example.com",
-  "shortUrl": "1fa",
-  "status": "active",
-  "updated": "2026-04-08T12:12:49.818",
-  "user": "default"
-}
+curl -s -H'Content-Type: application/json' -d'{"shortUrl": "1fa","longUrl": "http://www.example.com", "user": "default"}' http://localhost:8080/api/v1/urls
 ```
 
-Get url by id:
+My result:
+
+```bash
+{"created":"2026-04-08T12:12:49.818459","id":"69d62a21cef4d076ba7a9dbd","longUrl":"http://www.example.com","shortUrl":"1fa","status":"active","updated":"2026-04-08T12:12:49.818473","user":"default"}
+```
+
+
+
+### Get by ID
 
 ```bash
 curl -s http://localhost:8080/api/v1/urls/69d62a21cef4d076ba7a9dbd | jq
@@ -111,7 +188,8 @@ curl -s http://localhost:8080/api/v1/urls/69d62a21cef4d076ba7a9dbd | jq
 }
 ```
 
-Update the url - _'user' is not updated!_:
+
+### Update URL
 
 ```bash
 curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url","longUrl": "http://new-long-url", "user": "007", "status": "inactive"}' http://localhost:8080/api/v1/urls/69d62a21cef4d076ba7a9dbd | jq
@@ -126,13 +204,10 @@ curl -s -H'Content-Type: application/json' -X PUT -d'{"shortUrl": "new-short-url
 }
 ```
 
-Find all urls for a user `default`:
+>*Note* Updates the url - _'user' is not updated!_:
 
-```bash
-curl -s http://localhost:8080/api/v1/urls\?user\=default | jq
-```
 
-## Verify the result in MongDB
+## Verify the result in MongoDB
 
 
 Use `docker ps` to get the id - here we get `49e2c560b30b` - and login into the docker container.

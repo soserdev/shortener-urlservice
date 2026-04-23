@@ -10,14 +10,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,10 +50,11 @@ class UrlServiceImplTest {
 
         assertTrue(result.isPresent());
         assertEquals("http://example.com", result.get().getLongUrl());
+
         verify(urlRepository, times(1)).findByShortUrl(eq("1fa"));
         Mockito.verifyNoMoreInteractions(urlRepository);
-
     }
+
     @Test
     void getShortUrlNotExist() {
         when(urlRepository.findByShortUrl(any())).thenReturn(Optional.empty());
@@ -55,6 +62,7 @@ class UrlServiceImplTest {
         Optional<UrlData> result = urlService.getByShortUrl("1fa");
 
         assertEquals(Optional.empty(), result);
+
         verify(urlRepository, times(1)).findByShortUrl(eq("1fa"));
         verifyNoMoreInteractions(urlRepository);
     }
@@ -68,6 +76,7 @@ class UrlServiceImplTest {
         assertTrue(result.isPresent());
         assertEquals("1fa", result.get().getShortUrl());
         assertEquals("http://example.com", result.get().getLongUrl());
+
         verify(urlRepository, times(1)).save(any(UrlData.class));
         verifyNoMoreInteractions(urlRepository);
     }
@@ -77,19 +86,43 @@ class UrlServiceImplTest {
         var id = UUID.randomUUID().toString();
         var now = LocalDateTime.now();
         var yesterday = now.minusDays(1);
-        var existing = new UrlData(id, "shortUrl-old", "http://longurl-old.com", "user123", UrlStatus.ACTIVE.toString(), yesterday, yesterday);
-        var updated = new UrlData(id, "shortUrl", "http://longurl.com", "user123", UrlStatus.INACTIVE.toString(), yesterday, now);
+
+        var existing = new UrlData(
+                id,
+                "shortUrl-old",
+                "http://longurl-old.com",
+                "user123",
+                UrlStatus.ACTIVE.toString(),
+                yesterday,
+                yesterday
+        );
+
+        var updated = new UrlData(
+                id,
+                "shortUrl",
+                "http://longurl.com",
+                "user123",
+                UrlStatus.INACTIVE.toString(),
+                yesterday,
+                now
+        );
 
         when(urlRepository.findById(id)).thenReturn(Optional.of(existing));
         when(urlRepository.save(any(UrlData.class))).thenReturn(updated);
 
-        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
+        Optional<UrlData> result = urlService.updateUrl(
+                id,
+                "shortUrl",
+                "http://longurl.com",
+                UrlStatus.INACTIVE.toString()
+        );
 
         assertTrue(result.isPresent());
         assertEquals("shortUrl", result.get().getShortUrl());
         assertEquals("http://longurl.com", result.get().getLongUrl());
         assertEquals(UrlStatus.INACTIVE.toString(), result.get().getStatus());
-        verify(urlRepository, times(1)).findById(any(String.class));
+
+        verify(urlRepository, times(1)).findById(id);
         verify(urlRepository, times(1)).save(any(UrlData.class));
         verifyNoMoreInteractions(urlRepository);
     }
@@ -100,8 +133,52 @@ class UrlServiceImplTest {
 
         when(urlRepository.findById(id)).thenReturn(Optional.empty());
 
-        Optional<UrlData> result = urlService.updateUrl(id, "shortUrl", "http://longurl.com", UrlStatus.INACTIVE.toString());
+        Optional<UrlData> result = urlService.updateUrl(
+                id,
+                "shortUrl",
+                "http://longurl.com",
+                UrlStatus.INACTIVE.toString()
+        );
 
         assertTrue(result.isEmpty());
+
+        verify(urlRepository, times(1)).findById(id);
+        verifyNoMoreInteractions(urlRepository);
+    }
+
+    @Test
+    void getAllUrls() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<UrlData> list = List.of(urlData);
+        Page<UrlData> page = new PageImpl<>(list, pageable, list.size());
+
+        when(urlRepository.findAll(pageable)).thenReturn(page);
+
+        Page<UrlData> result = urlService.getAllUrls(pageable);
+
+        assertEquals(1, result.getContent().size());
+        assertEquals("1fa", result.getContent().get(0).getShortUrl());
+
+        verify(urlRepository, times(1)).findAll(pageable);
+        verifyNoMoreInteractions(urlRepository);
+    }
+
+    @Test
+    void getUrlsByUser() {
+        Pageable pageable = PageRequest.of(0, 10);
+        String user = "user123";
+
+        List<UrlData> list = List.of(urlData);
+        Page<UrlData> page = new PageImpl<>(list, pageable, list.size());
+
+        when(urlRepository.findByUser(user, pageable)).thenReturn(page);
+
+        Page<UrlData> result = urlService.getUrlsByUser(user, pageable);
+
+        assertEquals(1, result.getContent().size());
+        assertEquals("user123", result.getContent().get(0).getUser());
+
+        verify(urlRepository, times(1)).findByUser(user, pageable);
+        verifyNoMoreInteractions(urlRepository);
     }
 }

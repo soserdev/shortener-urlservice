@@ -19,9 +19,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Import(TestcontainersConfiguration.class)
-@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "mongock.enabled=false"
-})
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"mongock.enabled=false"}
+)
 @AutoConfigureTestRestTemplate
 class UrlServiceControllerIT {
 
@@ -38,12 +39,19 @@ class UrlServiceControllerIT {
     void createNewUrl() throws JSONException {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
         url.put("shortUrl", "short-url-1");
         url.put("longUrl", "http://long-url-1/");
         url.put("user", "user-id");
 
-        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<String>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> response = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1,
+                HttpMethod.POST,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotBlank();
@@ -68,10 +76,17 @@ class UrlServiceControllerIT {
     void createNewUrlInvalid() throws JSONException {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
         url.put("shortUrl", "");
 
-        ResponseEntity<UrlData> response = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<>(url.toString(), headers), UrlData.class);
+        ResponseEntity<UrlData> response = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1,
+                HttpMethod.POST,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
@@ -81,6 +96,7 @@ class UrlServiceControllerIT {
 
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
         url.put("id", existing.getId());
         url.put("shortUrl", "short-url-new");
@@ -110,13 +126,48 @@ class UrlServiceControllerIT {
 
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+
         var url = new JSONObject();
         url.put("shortUrl", "short-url-2");
         url.put("longUrl", "http://long-url-2/");
         url.put("user", "user-id");
 
-        ResponseEntity<UrlData> unprocessable = restTemplate.exchange(UrlServiceController.SERVICE_API_V1, HttpMethod.POST, new HttpEntity<>(url.toString(), headers), UrlData.class);
-        assertThat(unprocessable.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
+        ResponseEntity<UrlData> response = restTemplate.exchange(
+                UrlServiceController.SERVICE_API_V1,
+                HttpMethod.POST,
+                new HttpEntity<>(url.toString(), headers),
+                UrlData.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
     }
 
+    @Test
+    void getUrls_withPagination() {
+        // given
+        urlRepository.deleteAll();
+        urlRepository.save(new UrlData("s1", "l1", "user1"));
+        urlRepository.save(new UrlData("s2", "l2", "user1"));
+        urlRepository.save(new UrlData("s3", "l3", "user1"));
+        urlRepository.save(new UrlData("s4", "l4", "user2"));
+
+        // when
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                UrlServiceController.SERVICE_API_V1 + "?user=user1&page=0&size=2",
+                String.class
+        );
+
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+
+        // basic JSON checks (since Page is serialized)
+        assertThat(response.getBody()).contains("content");
+        assertThat(response.getBody()).contains("totalElements");
+        assertThat(response.getBody()).contains("totalPages");
+
+        // verify filtering worked
+        assertThat(response.getBody()).contains("user1");
+        assertThat(response.getBody()).doesNotContain("user2");
+    }
 }

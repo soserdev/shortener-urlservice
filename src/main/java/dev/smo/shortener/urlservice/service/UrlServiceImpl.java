@@ -4,10 +4,11 @@ import dev.smo.shortener.urlservice.model.UrlData;
 import dev.smo.shortener.urlservice.model.UrlStatus;
 import dev.smo.shortener.urlservice.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,13 +32,13 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public List<UrlData> getAllUrls() {
-        return urlRepository.findAll();
+    public Page<UrlData> getAllUrls(Pageable pageable) {
+        return urlRepository.findAll(pageable);
     }
 
     @Override
-    public List<UrlData> getUrlsByUser(String user) {
-        return urlRepository.findByUser(user);
+    public Page<UrlData> getUrlsByUser(String user, Pageable pageable) {
+        return urlRepository.findByUser(user, pageable);
     }
 
     @Override
@@ -72,5 +73,4 @@ public class UrlServiceImpl implements UrlService {
         var saved = urlRepository.save(existing);
         return Optional.of(saved);
     }
-
 }
